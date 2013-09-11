@@ -10,12 +10,12 @@ import os
 import sys
 import shutil
 import re
-import time
 from datetime import datetime
 from math import log
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from collections import defaultdict
 from operator import attrgetter
+import locale
 
 from rest import blogArticleString
 from naive_tzinfo import get_rfc3339
@@ -127,12 +127,11 @@ class Article:
 
     def human_created(self):
         """Return human created date"""
-        # TODO: how about locale?, like:
-        # import locale
-        # locale.setlocale(locale.LC_ALL, locale.getlocale()[0])
-        # or
-        # locale.setlocale(locale.LC_ALL, "de_DE")
         return self.created.strftime("%d %b, %Y")
+
+    def human_created_detail(self):
+        """Return human created date"""
+        return self.created.strftime("%A, %d %b, %Y, %X")
 
     def rfc_created(self):
         """Return RFC 3339 formatted date"""
@@ -211,10 +210,39 @@ class Kiroku:
                                    "header": header,
                                    "body": " ".join(titles),
                                    "footer": "",
+                                   "class_index": "current",
+                                   "class_arch": "",
                                    "tags": self.tag_cloud})
 
     def _index(self):
         """Create index.html for the main site entry"""
+        main = _get_template("main")
+        short_article = _get_template("short_article")
+        article_tags = _get_template("article_tags")
+
+        titles = []
+        for art in self.articles[:5]:
+            art_tags = ", ".join([article_tags %
+                                  {"tag_url": trans(tag_), "tag": tag_}
+                                  for tag_ in art.tags])
+            titles.append(short_article % {"article_url": art.html_fname,
+                                           "title": art.title,
+                                           "datetime": art.rfc_created(),
+                                           "human_date": art.human_created(),
+                                           "short_body":
+                                           art.body.split("<!-- more -->")[0],
+                                           "tags": art_tags})
+
+        with open(os.path.join("build", "index.html"), "w") as fobj:
+
+            fobj.write(main % {"page_header": "import that",
+                               "title": "",
+                               "header": "",
+                               "body": " ".join(titles),
+                               "footer": "",
+                               "class_index": "current",
+                               "class_arch": "",
+                               "tags": self.tag_cloud})
 
     def _archive(self):
         """Create atchive.html for the site"""
@@ -225,8 +253,8 @@ class Kiroku:
 
         titles = []
         for art in self.articles:
-            art_tags = ", ".join([article_tags % {"tag_url": trans(tag_),
-                                                  "tag": tag_}
+            art_tags = ", ".join([article_tags %
+                                  {"tag_url": trans(tag_), "tag": tag_}
                                   for tag_ in art.tags])
             titles.append(headline % {"article_url": art.html_fname,
                                       "title": art.title,
@@ -238,10 +266,12 @@ class Kiroku:
             header = archive_header % {"title": "Archiwum"}
 
             fobj.write(main % {"page_header": "import that",
-                               "title": "Archiwum",
+                               "title": "Archiwum - ",
                                "header": header,
                                "body": " ".join(titles),
                                "footer": "",
+                               "class_index": "",
+                               "class_arch": "current",
                                "tags": self.tag_cloud})
 
     def _save(self):
@@ -286,10 +316,17 @@ class Kiroku:
 
         for art in self.articles:
 
+            art_tags = ", ".join([article_tags %
+                                  {"tag_url": trans(tag_), "tag": tag_}
+                                  for tag_ in art.tags])
+
             header = article_header % {"title": art.title,
                                        "datetime": art.rfc_created(),
                                        "human_date": art.human_created()}
-            footer = article_footer
+            footer = article_footer % {'rfc_date': art.rfc_created(),
+                                       "datetime": art.human_created_detail(),
+                                       "human_date": art.human_created_detail(),
+                                       "tags": art_tags}
 
             match = FILENAME.match(art.fname)
             if match:
@@ -299,11 +336,13 @@ class Kiroku:
 
             with open(os.path.join("build", art.html_fname), "w") as fobj:
                 fobj.write(main % {"page_header": "import that",
-                                       "title": art.title,
-                                       "header": header,
-                                       "body": art.body,
-                                       "footer": footer,
-                                       "tags": self.tag_cloud})
+                                   "title": art.title + " - ",
+                                   "header": header,
+                                   "body": art.body,
+                                   "footer": footer,
+                                   "class_index": "current",
+                                   "class_arch": "",
+                                   "tags": self.tag_cloud})
 
     def _walk(self):
         """Walk through the flat list of the articles and gather all of the
@@ -382,7 +421,6 @@ class Kiroku:
         If path is a file, such file would be refreshed"""
 
 
-
 if __name__ == '__main__':
 
     PARSER = ArgumentParser(description=__doc__,
@@ -407,4 +445,8 @@ if __name__ == '__main__':
     BUILD.set_defaults(func=build)
 
     ARGS = PARSER.parse_args()
+    # Apply curent locale
+    locale.setlocale(locale.LC_ALL, locale.getlocale()[0])
+    # or, force desired locale:
+    #locale.setlocale(locale.LC_ALL, "de_DE")
     sys.exit(ARGS.func(ARGS))

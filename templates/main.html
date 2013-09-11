@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>%(title)s - %(page_header)s</title>
+        <title>%(title)s%(page_header)s</title>
         <meta charset="utf-8" />
 
         <link rel="stylesheet" href="css/style.css" type="text/css"
@@ -20,14 +20,14 @@
         <div id="wrapper">
 
             <header id="header">
-                <h1><a href="#">%(page_header)s</a></h1>
+                <h1><a href="index.html">%(page_header)s</a></h1>
             </header>
 
             <nav class="nav">
                 <ul id="main-nav">
-                    <li><a href="index.html">Blog</a></li>
-                    <li><a href="archives.html">Archiwum</a></li>
-                    <li><a href="#" title="subscribe via RSS">RSS</a></li>
+                    <li class="%(class_index)s"><a href="index.html">Blog</a></li>
+                    <li class="%(class_arch)s"><a href="archives.html">Archiwum</a></li>
+                    <li><a href="rss.xml" title="subscribe via RSS">RSS</a></li>
                 </ul>
             </nav>
 
@@ -39,15 +39,15 @@
 
             <aside>
                 <section>
-                    <h2>Search</h2>
+                    <h2>Szukaj</h2>
                     <form id="searchform" action="search.html">
-                        <input name="q" placeholder="Search…" 
+                        <input name="q" placeholder="Szukaj…" 
                             type="search">
                     </form>
                 </section>
 
                 <section>
-                    <h2>Tags</h2>
+                    <h2>Etykiety</h2>
                     <p>
                     %(tags)s
                     </p>
