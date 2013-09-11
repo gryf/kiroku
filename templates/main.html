@@ -1,0 +1,63 @@
+<!-- Main HTML template. Basically it is the same across the entire site. -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>%(title)s - %(page_header)s</title>
+        <meta charset="utf-8" />
+
+        <link rel="stylesheet" href="css/style.css" type="text/css"
+            media="screen">
+
+        <meta name="HandheldFriendly" content="True">
+        <meta name="MobileOptimized" content="320">
+        <meta name="viewport" content="width=device-width, minimumscale=1.0, 
+            maximum-scale=1.0" />
+
+        <link href="favicon.ico" rel="icon">
+    </head>
+
+    <body>
+        <div id="wrapper">
+
+            <header id="header">
+                <h1><a href="#">%(page_header)s</a></h1>
+            </header>
+
+            <nav class="nav">
+                <ul id="main-nav">
+                    <li><a href="index.html">Blog</a></li>
+                    <li><a href="archives.html">Archiwum</a></li>
+                    <li><a href="#" title="subscribe via RSS">RSS</a></li>
+                </ul>
+            </nav>
+
+            <article>
+                %(header)s
+                %(body)s
+                %(footer)s
+            </article>
+
+            <aside>
+                <section>
+                    <h2>Search</h2>
+                    <form id="searchform" action="search.html">
+                        <input name="q" placeholder="Search…" 
+                            type="search">
+                    </form>
+                </section>
+
+                <section>
+                    <h2>Tags</h2>
+                    <p>
+                    %(tags)s
+                    </p>
+                </section>
+
+            </aside>
+
+            <footer>
+                The vimja shrine
+            </footer>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,82 @@
+:Title: Kiroku readme
+:Datetime: 2013-09-08 10:57:24
+:Modified:
+:Tags: blog
+
+What is Kiroku?
+---------------
+
+Kiroku (喜六, in the meaning of putting something into the record; writing
+something) is a simple tool which helps out to generate a full blown static
+site out of the reST articles.
+
+.. more
+
+Requirements
+------------
+
+Since I tried to minimize usage of 3rd party libraries, only few dependencies
+are actually required:
+
+- python >= 3.2
+- docutils >= 0.10
+
+and basically that's it. Optional dependencies are:
+
+- pygments >= 1.6 (for code blocks highlighting)
+- pytz >= 2013b (for proper conversion to RFC 3339 datetime format, if you care)
+
+Installation
+------------
+
+#. Install globally
+   TBD
+#. Install locally
+   TBD
+#. Virtualenv is one option
+   TBD
+#. Also, an obscure way is always possible
+
+   .. code:: shell-session
+
+      gryf@mslug ~ $ PYTHONPATH=[path/to/the/kiroku/directory] python3 \
+      [path/to/the/kiroku/directory] kiroku.py init my_site
+
+   TBD
+
+This optional comment above is just for artificially separating summary (or
+first paragraph) form the rest of the article.
+
+Fields at the top of the document, are as follows:
+
+- ``:Title:`` - mandatory field with the title of the article
+- ``:Datetime:`` - creation date in format described below. Leave empty to be
+  filled automatically
+- ``:Modified:`` - modification date in format described below. Leave empty or
+  to be filled automatically.
+- ``:Tags:`` - comma separated labels for the article
+
+
+Date formats are actually local date time in following format:
+
+.. code::
+
+    2000-01-24 17:33:31
+
+Config file
+-----------
+
+Date formats are actually date time with timezone format described (as a
+subset) in `RFC 3339`_, for example:
+
+Those fields doesn't have to be in order, but have to be at the top of the
+article.
+
+.. code::
+
+    2000-01-24T17:33:31.377+02:00
+
+Which covers date, time with milliseconds and timezone exactly in that format,
+or simple local data may be used:
+
+.. _RFC 3339: https://www.ietf.org/rfc/rfc3339.txt
