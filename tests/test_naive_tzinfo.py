@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 # encoding: utf-8
+"""
+Tests for tzinfo naive implementation
+
+"""
 
 from datetime import datetime
 import unittest
@@ -8,13 +12,10 @@ import naive_tzinfo
 
 
 class TestCETimeZone(unittest.TestCase):
+    """CET/CEST tzinfo class tests"""
 
     def setUp(self):
-        self.dst = datetime.strptime("2012-08-28 01:59:59",
-                                     "%Y-%m-%d %H:%M:%S")
-        self.nodst = datetime.strptime("2012-02-21 01:59:59",
-                                       "%Y-%m-%d %H:%M:%S")
-
+        """Setup"""
         self.dates = {'2012-03-25 02:00:00': "CEST",
                       '2013-03-31 02:00:00': "CEST",
                       '2014-03-30 02:00:00': "CEST",
@@ -65,23 +66,24 @@ class TestCETimeZone(unittest.TestCase):
                       '2011-10-30 02:00:00': "CET"}
 
     def test_utcoffset(self):
+        """Tests of utf offsets"""
         map_ = {'CEST': 2, 'CET': 1}
 
-        for str_, tz in self.dates.items():
+        for str_, tzone in self.dates.items():
             date = datetime.strptime(str_, "%Y-%m-%d %H:%M:%S")
             tzdate = naive_tzinfo.CETimeZone(date)
             self.assertEqual(int(tzdate.utcoffset(date).seconds / 3600),
-                             map_[tz])
+                             map_[tzone])
 
     def test_calcs(self):
         """Border dates for couple of years"""
 
-        for str_, tz in self.dates.items():
+        for str_, tzone in self.dates.items():
             date = datetime.strptime(str_, "%Y-%m-%d %H:%M:%S")
             tzdate = naive_tzinfo.CETimeZone(date)
-            self.assertEqual(tzdate.tzname(date), tz,
+            self.assertEqual(tzdate.tzname(date), tzone,
                              "date `%s' should have timezone `%s', but it "
-                             "have `%s'" % (str_, tz, tzdate.tzname(date)))
+                             "have `%s'" % (str_, tzone, tzdate.tzname(date)))
 
 if __name__ == '__main__':
     unittest.main()
