@@ -49,13 +49,22 @@ class CETimeZone(tzinfo):
             delta += dst_delta
         return delta
 
-def get_rfc3339(datetime_arg):
-    """Return RFC 3339 formatted string out of datetime provided object"""
 
-    format_ = '%Y-%m-%dT%H:%M:%S%z'
+def _get_formatted_date(datetime_arg, format_):
+    """Return datetime as provided formatted string"""
 
     tzone = CETimeZone(datetime_arg)
     tz_dt = datetime_arg.replace(tzinfo=tzone)
     utc_with_shift = tz_dt - tz_dt.utcoffset()
 
     return utc_with_shift.strftime(format_)
+
+
+def get_rfc3339(datetime_arg):
+    """Return RFC 3339 formatted string out of datetime provided object"""
+    return _get_formatted_date(datetime_arg, '%Y-%m-%dT%H:%M:%S%z')
+
+
+def get_rfc822(datetime_arg):
+    """Return RFC 822 formatted string out of datetime provided object"""
+    return _get_formatted_date(datetime_arg, '%a, %d %b %Y %X %z')

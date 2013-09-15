@@ -3,6 +3,7 @@
 <html>
     <head>
         <title>%(title)s%(page_header)s</title>
+        <link rel="shortcut icon" href="//%(site_name)s/images/favico.ico">
         <meta charset="utf-8" />
 
         <link rel="stylesheet" href="css/style.css" type="text/css"
@@ -12,8 +13,6 @@
         <meta name="MobileOptimized" content="320">
         <meta name="viewport" content="width=device-width, minimumscale=1.0, 
             maximum-scale=1.0" />
-
-        <link href="favicon.ico" rel="icon">
     </head>
 
     <body>
@@ -27,6 +26,7 @@
                 <ul id="main-nav">
                     <li class="%(class_index)s"><a href="index.html">Blog</a></li>
                     <li class="%(class_arch)s"><a href="archives.html">Archiwum</a></li>
+                    <li class="%(class_about)s"><a href="about.html">O mnie</a></li>
                     <li><a href="rss.xml" title="subscribe via RSS">RSS</a></li>
                 </ul>
             </nav>
@@ -38,13 +38,13 @@
             </article>
 
             <aside>
-                <section>
+                <!-- <section>
                     <h2>Szukaj</h2>
                     <form id="searchform" action="search.html">
                         <input name="q" placeholder="Szukaj…" 
                             type="search">
                     </form>
-                </section>
+                </section> -->
 
                 <section>
                     <h2>Etykiety</h2>
