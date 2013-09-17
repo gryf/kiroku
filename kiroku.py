@@ -53,7 +53,8 @@ RSS_MAIN = """\
     <title>Import that</title>
     <link>%(url)s</link>
     <description>Blog. Po prostu.</description>
-    <atom:link href="http://%(site)s/rss.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://%(site)s/rss.xml" rel="self"
+        type="application/rss+xml" />
     %(items)s
   </channel>
 </rss>
@@ -85,11 +86,6 @@ ATOM_ITEM = """
         <content type="html">%(desc)s</content>
     </entry>
 """
-
-
-def trans(string):
-    """translate string to remove accented letters"""
-    return string.translate(TR_TABLE)
 
 
 def build(args):
@@ -128,6 +124,29 @@ def init(args):
     os.symlink(os.path.join(items_path, "kiroku.py"), "manage.py")
     sys.stdout.write('…all done.\n')
     return 0
+
+
+def _trans(string):
+    """translate string to remove accented letters"""
+    return string.translate(TR_TABLE)
+
+
+def _minify_css(fname):
+    """Minify CSS (destructive!)"""
+    comments = re.compile('\/\*.*?\*\/')
+    whitespace = re.compile('[\n\s\t][\n\s\t]+')
+    space = re.compile('\s?([;:{},+>])\s?')
+
+    with open(fname) as fobj:
+        css = fobj.read()
+
+    css = comments.sub("", css)
+    css = whitespace.sub(" ", css)
+    css = space.sub(r'\1', css)
+    css = css.replace(";}", "}")
+
+    with open(fname, "w") as fobj:
+        fobj.write(css)
 
 
 def _get_template(template_name, compress=False):
@@ -256,6 +275,7 @@ class Kiroku:
             os.mkdir("build")
             os.mkdir("build/images")
             shutil.copytree(".css", "build/css")
+            _minify_css(os.path.join("build", "css", "style.css"))
 
         self._walk()
         self._calculate_tag_cloud()
@@ -287,7 +307,7 @@ class Kiroku:
         main = _get_template("main")
         plain_header = _get_template("plain_header")
         headline = _get_template("headline")
-        article_tags = _get_template("article_tags")
+        article_tags = _get_template("article_tags").strip()
 
         tags = defaultdict(list)
         for art in self.articles:
@@ -297,7 +317,7 @@ class Kiroku:
         for tag in tags:
             titles = []
             for art in tags[tag]:
-                art_tags = ", ".join([article_tags % {"tag_url": trans(tag_),
+                art_tags = ", ".join([article_tags % {"tag_url": _trans(tag_),
                                                       "tag": tag_}
                                       for tag_ in art.tags])
                 titles.append(headline % {"article_url": art.html_fname,
@@ -306,13 +326,13 @@ class Kiroku:
                                           "human_date": art.created_short(),
                                           "tags": art_tags})
 
-            with open(os.path.join("build", "tag-%s.html" % trans(tag)),
+            with open(os.path.join("build", "tag-%s.html" % _trans(tag)),
                       "w") as fobj:
                 header = plain_header % {"title": "Wpisy z etykietą: %s" %
                                          tag}
 
                 fobj.write(main % {"page_header": "import that",
-                                   "title": "Wpisy z etykietą: %s" % tag,
+                                   "title": "Wpisy z etykietą: %s - " % tag,
                                    "site_name": SITE,
                                    "header": header,
                                    "body": " ".join(titles),
@@ -326,13 +346,13 @@ class Kiroku:
         """Create index.html for the main site entry"""
         main = _get_template("main")
         short_article = _get_template("short_article")
-        article_tags = _get_template("article_tags")
+        article_tags = _get_template("article_tags").strip()
 
         titles = []
         for art in self.articles[:5]:
             short_body = art.body.split("<!-- more -->")[0]
             art_tags = ", ".join([article_tags %
-                                  {"tag_url": trans(tag_), "tag": tag_}
+                                  {"tag_url": _trans(tag_), "tag": tag_}
                                   for tag_ in art.tags])
             titles.append(short_article % {"article_url": art.html_fname,
                                            "title": art.title,
@@ -359,12 +379,12 @@ class Kiroku:
         main = _get_template("main")
         plain_header = _get_template("plain_header")
         headline = _get_template("headline")
-        article_tags = _get_template("article_tags")
+        article_tags = _get_template("article_tags").strip()
 
         titles = []
         for art in self.articles[5:]:
             art_tags = ", ".join([article_tags %
-                                  {"tag_url": trans(tag_), "tag": tag_}
+                                  {"tag_url": _trans(tag_), "tag": tag_}
                                   for tag_ in art.tags])
             titles.append(headline % {"article_url": art.html_fname,
                                       "title": art.title,
@@ -424,12 +444,12 @@ class Kiroku:
         main = _get_template("main")
         article_header = _get_template("article_header")
         article_footer = _get_template("article_footer")
-        article_tags = _get_template("article_tags")
+        article_tags = _get_template("article_tags").strip()
 
         for art in self.articles:
 
             art_tags = ", ".join([article_tags %
-                                  {"tag_url": trans(tag_), "tag": tag_}
+                                  {"tag_url": _trans(tag_), "tag": tag_}
                                   for tag_ in art.tags])
 
             header = article_header % {"title": art.title,
@@ -554,7 +574,7 @@ class Kiroku:
         for key in sorted(self.tags):
             tag_cloud.append(anchor % {"size": self.tag_cloud[key],
                                        "tag": key,
-                                       "tag_url": trans(key),
+                                       "tag_url": _trans(key),
                                        "count": tags[key]})
 
         self.tag_cloud = " ".join(tag_cloud)
