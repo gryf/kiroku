@@ -52,12 +52,9 @@ class CETimeZone(tzinfo):
 
 def _get_formatted_date(datetime_arg, format_):
     """Return datetime as provided formatted string"""
-
     tzone = CETimeZone(datetime_arg)
     tz_dt = datetime_arg.replace(tzinfo=tzone)
-    utc_with_shift = tz_dt - tz_dt.utcoffset()
-
-    return utc_with_shift.strftime(format_)
+    return tz_dt.strftime(format_)
 
 
 def get_rfc3339(datetime_arg):
