@@ -1,8 +1,6 @@
 """
-File: rest.py
-Author: Roman 'gryf' Dobosz
-Description: This module is responsible for conversion between reST and HTML
-             with some goods added.
+This module is responsible for conversion between reST and HTML with some
+goods added.
 """
 
 import re
@@ -18,10 +16,6 @@ except ImportError:
     pass
 
 
-class Attrs(object):
-    ATTRS = {}
-
-
 class CustomHTMLTranslator(HTMLTranslator):
     """
     Base class for reST files translations.
@@ -33,7 +27,14 @@ class CustomHTMLTranslator(HTMLTranslator):
         Set some nice defaults for articles translations
         """
         HTMLTranslator.__init__(self, document)
-        self.initial_header_level = 4
+        self.initial_header_level = 2
+        self.head = []
+        self.meta = []
+        self.head_prefix = ['', '', '', '', '']
+        self.body_prefix = []
+        self.body_suffix = []
+        self.stylesheet = []
+        self.generator = ('')
 
     def visit_section(self, node):
         """
@@ -61,12 +62,6 @@ class CustomHTMLTranslator(HTMLTranslator):
         Reset body, remove unnecessary content.
         """
         self.body = []
-
-    def visit_date(self, node):
-        pass
-
-    def depart_date(self, node):
-        pass
 
     def visit_literal(self, node):
         """
@@ -105,9 +100,8 @@ class CustomHTMLTranslator(HTMLTranslator):
 
         if patt.match(node_text):
             node.children[0] = nodes.Text(patt.match(node_text).groups()[0])
-            self.body.append(\
-                self.starttag(node, 'acronym',
-                              '', title=patt.match(node_text).groups()[1]))
+            self.body.append(self.starttag(node, 'acronym', '', title=patt.
+                                           match(node_text).groups()[1]))
 
         else:
             self.body.append(self.starttag(node, 'acronym', ''))
@@ -122,83 +116,27 @@ class CustomHTMLTranslator(HTMLTranslator):
 
         if patt.match(node_text):
             node.children[0] = nodes.Text(patt.match(node_text).groups()[0])
-            self.body.append(\
-                self.starttag(node, 'abbr',
-                              '', title=patt.match(node_text).groups()[1]))
+            self.body.append(self.starttag(node, 'abbr', '', title=patt.
+                                           match(node_text).groups()[1]))
 
         else:
             self.body.append(self.starttag(node, 'abbr', ''))
-
-
-class NoHeaderHTMLTranslator(CustomHTMLTranslator):
-    """
-    Special subclass for generating only body of an article
-    """
-    def __init__(self, document):
-        """
-        Remove all needless parts of HTML document.
-        """
-        CustomHTMLTranslator.__init__(self, document)
-        self.head = []
-        self.meta = []
-        self.head_prefix = ['', '', '', '', '']
-        self.body_prefix = []
-        self.body_suffix = []
-        self.stylesheet = []
-        self.generator = ('')
 
     def visit_field(self, node):
         """
         Harvest docinfo fields and store it in global dictionary.
         """
         key, val = [n.astext() for n in node]
-        Attrs.ATTRS[key.lower()] = val.strip()
+        BlogArticle.ATTRS[key.lower()] = val.strip()
 
     def visit_date(self, node):
         """
         Store published date in global dictionary.
         """
-        Attrs.ATTRS['date'] = node.astext()
+        BlogArticle.ATTRS['date'] = node.astext()
 
-
-class PreviewHTMLTranslator(CustomHTMLTranslator):
-    """
-    Class for display article in the browser as a preview.
-    """
-    CSS = []
-
-    def __init__(self, document):
-        """
-        Alter levels for the heading tags, define custom, blog specific
-        stylesheets. Note, that style_custom is present only locally to adjust
-        way of display the page
-        """
-        CustomHTMLTranslator.__init__(self, document)
-        self.initial_header_level = 1
-        self.section_level = 1
-        # order of css files is important
-        self.default_stylesheets = PreviewHTMLTranslator.CSS
-        self.stylesheet = [self.stylesheet_link % self.encode(css) \
-                for css in self.default_stylesheets]
-        self.body_ = []
-
-    def depart_docinfo(self, node):
-        """
-        Overwrite body with some custom one. body_ will hold the first heading
-        with title of the document.
-        """
-        self.body = self.body_
-
-    def visit_field(self, node):
-        """
-        Make title visible as a heading
-        """
-        key, node_ = [n.astext() for n in node]
-        key = key.lower()
-        if key == 'title':
-            self.head.append('<title>%s</title>\n' % self.encode(node_))
-            self.body_.append('<h1 class="post-title entry-title">'
-                             '<a href="#">%s</a></h1>\n' % self.encode(node_))
+    def depart_date(self, node):
+        pass
 
 
 class BlogBodyWriter(Writer):
@@ -207,57 +145,37 @@ class BlogBodyWriter(Writer):
     """
     def __init__(self):
         Writer.__init__(self)
-        self.translator_class = NoHeaderHTMLTranslator
+        self.translator_class = CustomHTMLTranslator
 
     def translate(self):
         self.document.settings.output_encoding = "utf-8"
         Writer.translate(self)
 
 
-class BlogPreviewWriter(Writer):
-    """
-    Custom Writer class for generating full HTML of the article
-    """
-    def __init__(self, stylesheets=None):
-        Writer.__init__(self)
-        if not stylesheets:
-            stylesheets = []
-        self.translator_class = PreviewHTMLTranslator
-        self.translator_class.CSS = stylesheets
+class BlogArticle(object):
+    """Returns partial HTML of the article, and attribute dictionary
+    string argument is an article in reST"""
 
-    def translate(self):
-        self.document.settings.output_encoding = "utf-8"
-        Writer.translate(self)
+    ATTRS = {}
 
+    def __init__(self, rest_str):
+        """Initialize the objects"""
+        BlogArticle.ATTRS = {}
+        self.rest_str = rest_str
 
-def blogPreview(string, stylesheets=None):
-    """
-    Returns full HTML of the article.
-    string argument is an article in reST
-    """
-    if not stylesheets:
-        stylesheets = []
-    html_output = core.publish_string(string,
-                                      writer=BlogPreviewWriter(stylesheets))
-    html_output.decode("utf-8")
-    html_output = html_output.strip()
-    html_output = html_output.replace("<!-- more -->", "\n<!-- more -->\n")
-    return html_output
+    def publish(self):
+        """return items: the article attrs and the html itself"""
+        html_output = core.publish_string(self.rest_str,
+                                          writer=BlogBodyWriter())
+        html_output = html_output.decode("utf-8").strip()
+        html_output = html_output.replace("<!-- more -->", "\n<!-- more -->\n")
+        return html_output, self._return_parsed_attrs()
 
-
-def blogArticleString(string):
-    """
-    Returns partial HTML of the article, and attribute dictionary
-    string argument is an article in reST
-    """
-    # reset ATTRS
-    Attrs.ATTRS = {}
-    html_output = core.publish_string(string, writer=BlogBodyWriter())
-    html_output = html_output.decode("utf-8").strip()
-    html_output = html_output.replace("<!-- more -->", "\n<!-- more -->\n")
-    attrs = {}
-    for key in Attrs.ATTRS:
-        if Attrs.ATTRS[key]:
-            attrs[key] = Attrs.ATTRS[key]
-
-    return html_output, attrs
+    def _return_parsed_attrs(self):
+        """Get the dictionary of article attributes out of field list gathered
+        by the CustomHTMLTranslator object"""
+        attrs = {}
+        for key, item in self.ATTRS.items():
+            if item:
+                attrs[key] = item
+        return attrs

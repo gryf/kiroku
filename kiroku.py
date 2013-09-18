@@ -18,8 +18,7 @@ from operator import attrgetter
 import locale
 from configparser import ConfigParser
 
-
-from rest import blogArticleString
+from rest import BlogArticle
 from naive_tzinfo import get_rfc3339, get_rfc822
 
 
@@ -504,7 +503,7 @@ class Kiroku:
             return
 
         with open(os.path.join("articles", self._about_fname)) as fobj:
-            html, dummy = blogArticleString(fobj.read())
+            html, dummy = BlogArticle(fobj.read()).publish()
 
         main = _get_template("main")
         plain_header = _get_template("plain_header")
@@ -527,7 +526,7 @@ class Kiroku:
         """Gather all the necesary info for the article"""
         print("Processing `%s'" % fname)
         with open(os.path.join("articles", fname)) as fobj:
-            html, attrs = blogArticleString(fobj.read())
+            html, attrs = BlogArticle(fobj.read()).publish()
 
         art = Article(attrs['title'], html, attrs.get('datetime'))
         if attrs.get('datetime'):
