@@ -97,6 +97,11 @@ input[type="search"]::-webkit-search-cancel-button {
 	display: none;
 }
 
+.rss-link {
+    background: url("rss.png") no-repeat left center;
+    padding-left: 20px;
+}
+
 .art-foot {
     font-size: 0.8em
 }
@@ -104,6 +109,8 @@ input[type="search"]::-webkit-search-cancel-button {
 .headline p.datetag {
     font-size: 0.8em;
 }
+
+/* Pygments highlighting classes */
 
 .highlight {
     padding: 0;
@@ -119,7 +126,12 @@ input[type="search"]::-webkit-search-cancel-button {
     margin: 0
 }
 
-.highlight .lineno { color: #857b6f; background-color: #121212; padding-left: 2px; padding-right: 2px }
+.highlight .lineno {
+    color: #857b6f;
+    background-color: #121212;
+    padding-left: 2px;
+    padding-right: 2px
+}
 .highlight .hll { background-color: #ffffcc }
 .highlight .c { color: #99968b; font-style: italic} /* Comment */
 .highlight .err { color: #dddddd} /* Error */
@@ -226,6 +238,10 @@ article {
 input, time, article h1, article h2, article h3, article h4, article h5, article h6,
 aside h1, aside h2, aside h3, aside h4, aside h5, aside h6 {
     color: #CCC;
+}
+
+header.title h1 {
+    font-size: 1.8em;
 }
 
 aside {
@@ -344,16 +360,18 @@ footer {
         height: auto;
     }
 
-    #main-nav {
-        position: static;
-    }
-
-    #site-logo {
-        position: static;
-    }
-
     .image-left {
         float: none;
+    }
+
+    /*
+     * Uncomment this to get nice looking vertical menu for with icons.
+     * The only thing is, that you have to manage it somehow on mobile devices
+     * with the touch screen, since there is no mouse-over thing :).
+     */
+
+    /* #main-nav {
+        position: static;
     }
 
     .nav {
@@ -403,7 +421,7 @@ footer {
 
     .nav.center ul {
         left: 50%;
-    }
+    } */
 
     article {
         /* position: absolute; */
