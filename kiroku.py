@@ -25,7 +25,6 @@ from naive_tzinfo import get_rfc3339, get_rfc822
 SITE = "localhost"
 LOCALE = locale.getlocale()[0]
 
-FILENAME = re.compile("\d{4}-\d{2}-\d{2}_(.*).rst")
 TR_TABLE = {ord("ą"): "a",
             ord("ć"): "c",
             ord("ę"): "e",
@@ -43,7 +42,39 @@ TR_TABLE = {ord("ą"): "a",
             ord("Ó"): "O",
             ord("Ś"): "S",
             ord("Ź"): "Z",
-            ord("Ż"): "Z"}
+            ord("Ż"): "Z",
+            ord("'"): "_",
+            ord("!"): "",
+            ord('"'): "_",
+            ord("#"): "",
+            ord("$"): "",
+            ord("%"): "",
+            ord("&"): "and",
+            ord("'"): "_",
+            ord("("): "",
+            ord(")"): "",
+            ord("*"): "",
+            ord("+"): "",
+            ord(","): "",
+            ord("."): "",
+            ord("/"): "",
+            ord(":"): "",
+            ord(";"): "",
+            ord("<"): "",
+            ord("="): "",
+            ord(">"): "",
+            ord("?"): "",
+            ord("@"): "",
+            ord("["): "",
+            ord("\\"): "",
+            ord("]"): "",
+            ord("^"): "",
+            ord("`"): "",
+            ord("{"): "",
+            ord("|"): "",
+            ord("}"): "",
+            ord(" "): "_",
+            ord("~"): ""}
 
 RSS_MAIN = """\
 <?xml version="1.0"?>
@@ -68,28 +99,10 @@ RSS_ITEM = """
     </item>
 """
 
-ATOM_MAIN = """\
-<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
-    <author>gryf</author>
-    <title>Import that</title>
-    <updated>%(updated)s</updated>
-    <id>http://vimja.com/</id>
-    %(items)s
-</feed>
-"""
-ATOM_ITEM = """
-    <entry>
-        <title>%(title)s</title>
-        <link href="%(link)s"/>
-        <content type="html">%(desc)s</content>
-    </entry>
-"""
-
 
 def build(args):
     """Build the site"""
-    if not (os.path.exists("manage.py") and os.path.islink("manage.py")):
+    if not (os.path.exists("kiroku.py") and os.path.islink("kiroku.py")):
         return 10
 
     kiroku = Kiroku()
@@ -120,14 +133,14 @@ def init(args):
     shutil.copytree(os.path.join(items_path, "templates"), ".templates")
     shutil.copytree(os.path.join(items_path, "css"), ".css")
 
-    os.symlink(os.path.join(items_path, "kiroku.py"), "manage.py")
+    os.symlink(os.path.join(items_path, "kiroku.py"), "kiroku.py")
     sys.stdout.write('…all done.\n')
     return 0
 
 
-def _trans(string):
+def _trans(string_):
     """translate string to remove accented letters"""
-    return string.translate(TR_TABLE)
+    return string_.translate(TR_TABLE)
 
 
 def _minify_css(fname):
@@ -182,7 +195,7 @@ def _get_template(template_name, compress=False):
         return "".join(templ)
 
 
-class RSS:
+class Rss:
     """Rss representation class"""
     def __init__(self):
         """Initialize RSS container"""
@@ -199,9 +212,6 @@ class RSS:
         """
         self.items.append(RSS_ITEM % item)
 
-    def _rss(self):
-        """Generate RSS 2.0 structured XML"""
-
     def get(self):
         """Return RSS XML string"""
 
@@ -212,15 +222,22 @@ class RSS:
 
 class Article:
     """Represents article"""
-    def __init__(self, title, body=None, created=None):
-        """Create the obj"""
-        self.body = body
-        self.created = created
-        self.title = title
 
-        self.fname = None
+    def __init__(self, fname):
+        """Create the obj"""
+        self.body = None
+        self.created = None
         self.html_fname = None
         self.tags = []
+        self.title = None
+        self._fname = fname
+
+    def read(self):
+        """Read article and transform to html"""
+        html, attrs = self._transfrom_to_html()
+        self.body = html
+        self._process_attrs(attrs)
+        self._set_html_name()
 
     def created_short(self):
         """Return human created date"""
@@ -242,13 +259,78 @@ class Article:
         locale.setlocale(locale.LC_ALL, LOCALE)
         return date
 
-    def human_updated(self):
-        """Return human updated date"""
-        pass
+    def _transfrom_to_html(self):
+        """Return processed article and its fileds"""
+        html = attrs = None
+        with open(self._fname) as fobj:
+            html, attrs = BlogArticle(fobj.read()).publish()
+        return html, attrs
 
-    def _human_date(self):
-        """Return human date"""
-        pass
+    def _process_attrs(self, attrs):
+        """Process provided article attributes"""
+        action_map = {'datetime': self._set_ctime,
+                      'tags': self._set_tags,
+                      'title': self._set_title}
+
+        for key in attrs:
+            if action_map.get(key):
+                action_map[key](attrs[key])
+
+        if not self.created:
+            self._set_ctime()
+
+        if not self.title:
+            self.title = self._fname
+
+    def _set_ctime(self, date_str=None):
+        """Set article creation time either with provided date_str, or via
+        article files' mtime."""
+        if date_str:
+            self.created = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+        else:
+            mtime = os.stat(self._fname).st_mtime
+            self.created = datetime.fromtimestamp(mtime)
+
+    def _set_tags(self, tags_str):
+        """Process tags into a list. List of tags is sorted in alphabetical
+        order"""
+        tags = []
+        for tag in tags_str.split(","):
+            tag = tag.strip()
+            tags.append(tag)
+        tags.sort()
+
+        self.tags = tags
+
+    def _set_title(self, title):
+        """Set title out of provided title."""
+        if title:
+            self.title = title
+
+    def _set_html_name(self):
+        """Caclulate html uri part"""
+        # Files are sometimes named:
+        # YYYY-MM-DD_some_informative_name.rst
+        re_fname = re.compile("\d{4}-\d{2}-\d{2}_(.*)")
+
+        dummy, name = os.path.split(self._fname)
+        name, dummy = os.path.splitext(name)
+
+        name = _trans(name)
+
+        match = re_fname.match(name)
+        if match:
+            # remove the prepending dates out of filename
+            self.html_fname = match.groups()[0].replace("_", "-") + ".html"
+        else:
+            # default.
+            name, dummy = os.path.splitext(name)
+            name = name.replace("_", "-")
+            self.html_fname = name + ".html"
+
+    def get_short_body(self):
+        """Return part of the HTML body up to first <!-- more --> comment"""
+        return self.body.split("<!-- more -->")[0].strip()
 
 
 class Kiroku:
@@ -260,9 +342,9 @@ class Kiroku:
     def __init__(self):
         self.articles = []
         self.tags = defaultdict(list)
-        self.tag_cloud = {}
+        self.tag_cloud = None
         self.words = {}
-        self.rss = RSS()
+        self.rss = Rss()
         # if os.stat(".db.sqlite").st_size == 0:
             # self._create_schema()
         self._sorted_articles = []
@@ -271,8 +353,7 @@ class Kiroku:
     def build(self):
         """Convert articles against the template to build directory"""
         if not os.path.exists("build"):
-            os.mkdir("build")
-            os.mkdir("build/images")
+            os.makedirs(os.path.join("build", "images"))
             shutil.copytree(".css", "build/css")
             _minify_css(os.path.join("build", "css", "style.css"))
 
@@ -292,11 +373,10 @@ class Kiroku:
     def _rss(self):
         """Write rss.xml file"""
         for art in self.articles[:10]:
-            short_body = art.body.split("<!-- more -->")[0]
             self.rss.add({"title": art.title,
                           "link": "http://%s/%s" % (SITE, art.html_fname),
                           "date": art.created_rfc822(),
-                          "desc": short_body})
+                          "desc": art.get_short_body()})
 
         with open(os.path.join("build", "rss.xml"), "w") as fobj:
             fobj.write(self.rss.get())
@@ -459,14 +539,6 @@ class Kiroku:
                                        "human_date": art.created_detailed(),
                                        "tags": art_tags}
 
-            match = FILENAME.match(art.fname)
-            if match:
-                # remove the prepending dates out of filename
-                art.html_fname = match.groups()[0].replace("_", "-") + ".html"
-            else:
-                # default
-                art.html_fname = art.fname[:-4] + ".html"
-
             with open(os.path.join("build", art.html_fname), "w") as fobj:
                 fobj.write(main % {"page_header": "import that",
                                    "title": art.title + " - ",
@@ -482,17 +554,18 @@ class Kiroku:
     def _walk(self):
         """Walk through the flat list of the articles and gather all of the
         goodies"""
-        arts = os.listdir("articles")
+        art_filenames = os.listdir("articles")
         # convention. maybe we will sort them out by the creation date
-        arts.sort()
+        art_filenames.sort()
 
-        for fname in arts:
+        for fname in art_filenames:
+            full_path = os.path.join("articles", fname)
             if not fname.endswith(".rst"):
                 continue
             if fname == "about.rst":
-                self._about_fname = fname
+                self._about_fname = full_path
             else:
-                self._harvest(fname)
+                self._harvest(full_path)
 
         self.articles = sorted(self.articles, key=attrgetter('created'),
                                reverse=True)
@@ -502,7 +575,7 @@ class Kiroku:
         if not self._about_fname:
             return
 
-        with open(os.path.join("articles", self._about_fname)) as fobj:
+        with open(self._about_fname) as fobj:
             html, dummy = BlogArticle(fobj.read()).publish()
 
         main = _get_template("main")
@@ -525,46 +598,35 @@ class Kiroku:
     def _harvest(self, fname):
         """Gather all the necesary info for the article"""
         print("Processing `%s'" % fname)
-        with open(os.path.join("articles", fname)) as fobj:
-            html, attrs = BlogArticle(fobj.read()).publish()
-
-        art = Article(attrs['title'], html, attrs.get('datetime'))
-        if attrs.get('datetime'):
-            art.created = datetime.strptime(attrs.get('datetime'),
-                                            "%Y-%m-%d %H:%M:%S")
-        else:
-            mtime = os.stat(os.path.join("articles", fname)).st_mtime
-            art.created = datetime.fromtimestamp(mtime)
-        art.fname = fname
-        tags = []
-        if attrs.get('tags'):
-            for tag in attrs.get('tags').split(","):
-                tag = tag.strip()
-                tags.append(tag)
-                self.tags[tag].append(fname)
-        art.tags = tags
+        art = Article(fname)
+        art.read()
         self.articles.append(art)
+
+        for tag in art.tags:
+            self.tags[tag].append(fname)
 
     def _calculate_tag_cloud(self):
         """Calculate tag cloud."""
         if self.tag_cloud:
             return self.tag_cloud
 
+        self.tag_cloud = {}
         anchor = _get_template("tag")
 
-        tags = {}
+        tag_wieght = {}
         biggest = 0
 
         for tag in self.tags:
-            tags[tag] = len(self.tags[tag])
-            biggest = tags[tag] if tags[tag] > biggest else biggest
+            tag_wieght[tag] = len(self.tags[tag])
+            biggest = tag_wieght[tag] if tag_wieght[tag] > biggest else biggest
 
         low = 1
         high = 9
 
         for tag in self.tags:
             if log(biggest):
-                size = (log(tags[tag]) / log(biggest)) * (high - low) + low
+                size = (log(tag_wieght[tag]) / log(biggest)) * \
+                        (high - low) + low
             else:
                 size = 9
             self.tag_cloud[tag] = size
@@ -574,7 +636,7 @@ class Kiroku:
             tag_cloud.append(anchor % {"size": self.tag_cloud[key],
                                        "tag": key,
                                        "tag_url": _trans(key),
-                                       "count": tags[key]})
+                                       "count": tag_wieght[key]})
 
         self.tag_cloud = " ".join(tag_cloud)
 
@@ -584,7 +646,6 @@ class Kiroku:
 
 
 if __name__ == '__main__':
-
     PARSER = ArgumentParser(description=__doc__,
                             formatter_class=RawDescriptionHelpFormatter)
 

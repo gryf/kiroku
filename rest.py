@@ -65,7 +65,7 @@ class CustomHTMLTranslator(HTMLTranslator):
 
     def visit_literal(self, node):
         """
-        This is almos the same as the original one from HTMLTranslator class.
+        This is almost the same as the original one from HTMLTranslator class.
         The only difference is in used HTML tag: it uses 'code' instead of
         'tt'
         """
@@ -90,22 +90,6 @@ class CustomHTMLTranslator(HTMLTranslator):
         # Content already processed:
         raise nodes.SkipNode
 
-    def visit_acronym(self, node):
-        """
-        Define missing acronym HTML tag
-        """
-        node_text = node.children[0].astext()
-        node_text = node_text.replace('\n', ' ')
-        patt = re.compile(r'^(.+)\s<(.+)>')
-
-        if patt.match(node_text):
-            node.children[0] = nodes.Text(patt.match(node_text).groups()[0])
-            self.body.append(self.starttag(node, 'acronym', '', title=patt.
-                                           match(node_text).groups()[1]))
-
-        else:
-            self.body.append(self.starttag(node, 'acronym', ''))
-
     def visit_abbreviation(self, node):
         """
         Define missing abbr HTML tag
@@ -128,15 +112,6 @@ class CustomHTMLTranslator(HTMLTranslator):
         """
         key, val = [n.astext() for n in node]
         BlogArticle.ATTRS[key.lower()] = val.strip()
-
-    def visit_date(self, node):
-        """
-        Store published date in global dictionary.
-        """
-        BlogArticle.ATTRS['date'] = node.astext()
-
-    def depart_date(self, node):
-        pass
 
 
 class BlogBodyWriter(Writer):
