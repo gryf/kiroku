@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>%(title)s%(site_name)s</title>
+        <link rel="shortcut icon" href="%(server_protocol)s://%(server_name)s%(server_root)simages/favico.ico">
+        <meta charset="utf-8" />
+
+        <link rel="stylesheet" href="css/style.css" type="text/css"
+            media="screen">
+
+        <meta name="HandheldFriendly" content="True">
+        <meta name="MobileOptimized" content="320">
+        <meta name="viewport" content="width=device-width, minimumscale=1.0,
+            maximum-scale=1.0" />
+        <script src="js/jquery.min.js"></script>
+        <script src="js/search.min.js"></script>
+    </head>
+
+    <body>
+        <div id="wrapper">
+
+            <header id="header">
+                <h1><a href="index.html">%(site_name)s</a></h1>
+            </header>
+
+            <nav class="nav">
+                <ul id="main-nav">
+                    <li class="%(class_index)s"><a
+                        href="index.html">%(i18n_main)s</a></li>
+                    <li class="%(class_arch)s"><a
+                        href="archives.html">%(i18n_archives)s</a></li>
+                    <li class="%(class_about)s"><a
+                        href="about.html">%(i18n_about)s</a></li>
+                </ul>
+            </nav>
+
+            <article>
+                %(header)s
+                %(body)s
+                %(footer)s
+            </article>
+
+            <aside>
+                <section>
+                    <h2>%(i18n_search)s</h2>
+                    <form id="searchform" action="">
+                        <input name="q"
+                            placeholder="%(i18n_search_placeholder)s"
+                            type="search">
+                    </form>
+                </section>
+
+                <section>
+                    <h2>%(i18n_tags)s</h2>
+                    <p>
+                    %(tag_cloud)s
+                    </p>
+                </section>
+
+                <section>
+                    <h2>%(i18n_subscribe)s</h2>
+                    <p>
+                    <span class="rss-link"> <a
+                            href="rss.xml"
+                            title="%(i18n_subscribe_desc)s">%(i18n_rss_feed)s</a></span>
+                    </p>
+                </section>
+
+            </aside>
+
+            <footer>
+                %(site_footer)s
+            </footer>
+        </div>
+    </body>
+</html>

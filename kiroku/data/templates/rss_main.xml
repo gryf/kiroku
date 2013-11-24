@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>%(site_name)s</title>
+    <link>%(server_protocol)s://%(server_name)s%(server_root)s</link>
+    <description>%(site_desc)s</description>
+    <atom:link href="%(server_protocol)s://%(server_name)s%(server_root)srss.xml" rel="self"
+        type="application/rss+xml" />
+    %(items)s
+  </channel>
+</rss>

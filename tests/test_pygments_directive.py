@@ -7,7 +7,7 @@ import unittest
 
 from docutils.parsers.rst import directives
 
-import pygments_directive
+from kiroku import pygments_directive
 
 
 class TestPygmentsDirective(unittest.TestCase):

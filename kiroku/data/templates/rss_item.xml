@@ -1,0 +1,7 @@
+    <item>
+        <title>%(article_title)s</title>
+        <link>%(server_protocol)s://%(server_name)s%(server_root)s%(article_link)s</link>
+        <description><![CDATA[%(item_desc)s]]></description>
+        <pubDate>%(pub_date)s</pubDate>
+        <guid>%(server_protocol)s://%(server_name)s%(server_root)s%(article_link)s</guid>
+    </item>

@@ -7,7 +7,7 @@ import unittest
 
 from docutils.nodes import SkipNode
 
-import rest
+from kiroku import rest
 
 
 class Mock(object):

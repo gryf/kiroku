@@ -4,7 +4,7 @@ Indexer and search word provider
 Note, that no stimming, nor other lexical analysis are done here. It's
 somehow hard to do it right statically for Polish language. For sure there
 are existing ready solutions for such task implemented for English language
-(see Sphinx project or https://pypi.python.org/pypi/stemming
+(see Sphinx project or https://pypi.python.org/pypi/stemming)
 """
 from html.parser import HTMLParser
 from collections import defaultdict
@@ -52,6 +52,7 @@ class MLStripper(HTMLParser):
         values"""
         weights = defaultdict(list)
         for key in self.words:
-            weight = sum(self.words[key])
-            weights[key] = weight
+            if len(key) > 1:  # skip one letter items
+                weight = sum(self.words[key])
+                weights[key] = weight
         return dict(weights)

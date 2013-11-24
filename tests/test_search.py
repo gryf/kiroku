@@ -5,7 +5,7 @@ Tests for search engine indexer
 """
 import unittest
 
-import search
+from kiroku import search
 
 
 class TestMLStripper(unittest.TestCase):

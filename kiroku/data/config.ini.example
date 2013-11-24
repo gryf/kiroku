@@ -1,0 +1,8 @@
+[kiroku]
+locale = C
+server_name = localhost
+server_root = /
+server_protocol = http
+site_name = Kiroku
+site_desc = Yet another blog
+site_footer = The footer

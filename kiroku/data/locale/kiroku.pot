@@ -1,0 +1,75 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-11-15 13:54+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: kiroku.py:93
+#, python-format
+msgid "Articles with tag: %s"
+msgstr ""
+
+#: kiroku.py:94
+msgid "Tags"
+msgstr ""
+
+#: kiroku.py:95
+msgid "About me"
+msgstr ""
+
+#: kiroku.py:96
+msgid "Archives"
+msgstr ""
+
+#: kiroku.py:97
+msgid "Blog"
+msgstr ""
+
+#: kiroku.py:98
+msgid "RSS feed"
+msgstr ""
+
+#: kiroku.py:99
+msgid "Search"
+msgstr ""
+
+#: kiroku.py:100
+msgid "Search…"
+msgstr ""
+
+#: kiroku.py:101
+msgid "Search results"
+msgstr ""
+
+#: kiroku.py:102
+msgid "Search in progress. Please wait."
+msgstr ""
+
+#: kiroku.py:103
+msgid "Results for phrase \"{sp}\""
+msgstr ""
+
+#: kiroku.py:104
+msgid "No results for phrase \"{sp}\""
+msgstr ""
+
+#: kiroku.py:105
+msgid "Subscribe"
+msgstr ""
+
+#: kiroku.py:106
+msgid "Subscribe via RSS"
+msgstr ""

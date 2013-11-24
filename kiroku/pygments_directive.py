@@ -8,8 +8,9 @@ from docutils import nodes
 from docutils.parsers.rst import directives, Directive
 
 from pygments import highlight
-from pygments.lexers import get_lexer_by_name, TextLexer
-from pygments.formatters import HtmlFormatter
+from pygments.lexers import get_lexer_by_name
+from pygments.lexers.special import TextLexer
+from pygments.formatters.html import HtmlFormatter
 
 
 def register(cssclass=None):

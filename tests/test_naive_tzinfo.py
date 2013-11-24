@@ -9,7 +9,7 @@ from datetime import datetime
 import unittest
 import locale
 
-from naive_tzinfo import CETimeZone, get_rfc3339, get_rfc822
+from kiroku.naive_tzinfo import CETimeZone, get_rfc3339, get_rfc822
 
 
 class TestCETimeZone(unittest.TestCase):

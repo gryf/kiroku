@@ -9,11 +9,15 @@ from docutils import core
 from docutils import nodes
 from docutils.writers.html4css1 import Writer, HTMLTranslator
 
+SETTINGS = {'syntax_highlight': 'none'}
 try:
-    from pygments_directive import register
-    register()
+    # try to import pygments - if exists set appropriate setting
+    import pygments
 except ImportError:
-    pass
+    pygments = None
+
+if pygments:
+    SETTINGS = {'syntax_highlight': 'short'}
 
 
 class CustomHTMLTranslator(HTMLTranslator):
@@ -141,7 +145,8 @@ class BlogArticle(object):
     def publish(self):
         """return items: the article attrs and the html itself"""
         html_output = core.publish_string(self.rest_str,
-                                          writer=BlogBodyWriter())
+                                          writer=BlogBodyWriter(),
+                                          settings_overrides=SETTINGS)
         html_output = html_output.decode("utf-8").strip()
         html_output = html_output.replace("<!-- more -->", "\n<!-- more -->\n")
         return html_output, self._return_parsed_attrs()
