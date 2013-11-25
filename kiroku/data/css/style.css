@@ -53,7 +53,7 @@ table {
 }
 
 th {
-    background: black;
+    background: #202023;
 }
 
 td, th {
@@ -73,9 +73,6 @@ tbody tr:nth-child(odd) {
     background: #353535;
 }
 
-tbody tr td:not(:first-child) {
-    text-align: center;
-}
 
 input {
     background: none repeat scroll 0 0 #555;
@@ -272,7 +269,7 @@ footer {
     font-size: 0.9em;
 }
 
-.figure img, table {
+.figure img {
     border: 2px solid black;
 }
 

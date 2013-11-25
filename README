@@ -25,7 +25,7 @@ Requirements
 ------------
 
 Besides (obviously) Python 3, there is only one dependency - `docutils`_,
-however, if there'll be a lot of program listings to be published, than it may
+however, if there'll be a lot of program listings to be published, then it may
 be a good idea to consider installing another one - `pygments`_, which
 *automagically* enables syntax highlight in code blocks.
 
@@ -57,7 +57,9 @@ Installation
 
       user@localhost $ git clone https://bitbucket.org/gryf/kiroku.git
       user@localhost $ cd kiroku
-      user@localhost kiroku $ ./kiroku.py --help
+      user@localhost kiroku $ PYTHONPATH=/home/user/kiroku python3 scripts/kiroku --help
+
+   Note, that ``PYTHONPATH`` should be defined correctly.
 
 Usage
 -----
@@ -71,6 +73,27 @@ building the structure of the blog or web side:
 
 This command will create default directory structure, under which several items
 will be available:
+
+- ``articles`` - directory where all articles/posts shall be stored
+- ``.css`` - contents of this directory will be copied into destination
+  ``build`` - directory as ``css``. All modification to the CSS should be done
+  there. File ``/.css/style.css`` is the default (and only) CSS file. Note, that
+  during build every file with extension ``.css`` will be minified.
+- ``.js`` - directory with JavaScript files. Will be copied to ``build/js``
+  during build.
+- ``.templates`` - this directory contains all the templates that kiroku uses
+  to build the pages.
+
+Now, just change the directory to ``blog`` and issue the command ``build`` to
+generate entire site:
+
+   .. code:: shell-session
+
+      user@localhost $ cd blog
+      user@localhost blog $ kiroku build
+
+Generated HTML files, style, JavaScript files - all of that will be placed in
+the ``build`` directory.
 
 
 Articles/pages
@@ -121,7 +144,7 @@ document:
 #. Special fields
 
    `Fields`_ are special elements, which may (or may not) be present on the
-   document itself, but their role is rather to describe reST document, than
+   document itself, but their role is rather to describe reST document, then
    make significant appearance on that document itself.
 
    Kiroku use three fields, which will be utilized to describe an article:
@@ -158,9 +181,67 @@ It will produce:
 
       print("hi")
 
-
 Configuration
 -------------
+
+Kiroku provides simple configuration via ``config.ini`` file. After the
+initialization there is an example for the configuration in the file
+``config.ini.example``. It can be renamed to the ``config.ini`` and then edited.
+
+Following options under ``[kiroku]`` section are available:
+
+- ``locale`` (default ``C``) - language of the web pages.
+- ``server_name`` (default ``localhost``) - target server name. It'll be used
+  for links in RSS and for `favicon`.
+- ``server_root`` (default ``/``) - The root of the page/blog can be set here.
+  If set to ``foo``, all the full links will be prefixed with it, i.e.
+  ``http://localhost/foo/link.html``.
+- ``server_protocol`` (default ``http``) - It may be changed to ``https``
+- ``site_name`` (default ``Kiroku``) - Site name. It will be displayed at the
+  top of the page.
+- ``site_desc`` (default ``Yet another blog``) - description of the
+  website/blog. By default only seen on the RSS description tag.
+- ``site_footer`` (default ``The footer``) - footer of the page.
+
+Besides configuration, there is possibility to influence the look of the page by
+simply adjusting the CSS file and the templates, which can be found under
+``.css`` and ``.templates`` directories respectively.
+
+Translations
+------------
+
+For now only Polish translation is available. Any help with translation is
+welcomed :)
+
+License
+-------
+
+This software is licensed under BSD License::
+
+    Copyright (c) 2013, Roman Dobosz
+    All rights reserved.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+        + Redistributions of source code must retain the above copyright
+          notice, this list of conditions and the following disclaimer.
+        + Redistributions in binary form must reproduce the above copyright
+          notice, this list of conditions and the following disclaimer in the
+          documentation and/or other materials provided with the distribution.
+        + Neither the name of the Roman Dobosz nor the
+          names of its contributors may be used to endorse or promote products
+          derived from this software without specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+    DISCLAIMED. IN NO EVENT SHALL ROMAN DOBOSZ BE LIABLE FOR ANY
+    DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+    ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 .. _docutils: http://docutils.sourceforge.net

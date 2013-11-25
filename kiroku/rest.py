@@ -8,16 +8,13 @@ import re
 from docutils import core
 from docutils import nodes
 from docutils.writers.html4css1 import Writer, HTMLTranslator
+import imp
 
-SETTINGS = {'syntax_highlight': 'none'}
 try:
-    # try to import pygments - if exists set appropriate setting
-    import pygments
-except ImportError:
-    pygments = None
-
-if pygments:
+    imp.find_module("pygments")
     SETTINGS = {'syntax_highlight': 'short'}
+except ImportError:
+    SETTINGS = {'syntax_highlight': 'none'}
 
 
 class CustomHTMLTranslator(HTMLTranslator):

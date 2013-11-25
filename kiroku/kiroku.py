@@ -367,7 +367,9 @@ class Kiroku:
             os.makedirs(os.path.join("build", "images"))
             shutil.copytree(".css", "build/css")
             shutil.copytree(".js", "build/js")
-            _minify_css(os.path.join("build", "css", "style.css"))
+            for fname in os.listdir(os.path.join("build", "css")):
+                if fname.endswith(".css"):
+                    _minify_css(os.path.join("build", "css", fname))
 
         self._walk()
         self._calculate_tag_cloud()
@@ -433,16 +435,19 @@ class Kiroku:
                  "w": {}}  # word list
         _ids = []
         for art in self.articles:
-            art_tags = ", ".join([article_tag % {"tag_url": _trans(tag_),
-                                                 "tag": tag_}
-                                  for tag_ in art.tags])
-            html = headline % {"article_url": art.html_fname,
-                               "title": art.title,
-                               "datetime": art.created_rfc3339(),
-                               "human_date": art.created_short(),
-                               "tags": art_tags}
+            data = [article_tag % {"tag_url": _trans(tag_),
+                                   "tag": tag_,
+                                   'server_root': self._cfg['server_root']}
+                    for tag_ in art.tags]
+            art_tags = ", ".join(data)
+            data = {"article_url": art.html_fname,
+                    "title": art.title,
+                    "datetime": art.created_rfc3339(),
+                    "human_date": art.created_short(),
+                    "tags": art_tags}
+            data.update(self._cfg)
 
-            words['a'].append(html)
+            words['a'].append(headline % data)
 
             _ids.append(art.html_fname)
             idx = _ids.index(art.html_fname)
@@ -473,14 +478,19 @@ class Kiroku:
         for tag in tags:
             titles = []
             for art in tags[tag]:
-                art_tags = ", ".join([article_tag %
-                                      {"tag_url": _trans(tag_), "tag": tag_}
-                                      for tag_ in art.tags])
-                titles.append(headline % {"article_url": art.html_fname,
-                                          "title": art.title,
-                                          "datetime": art.created_rfc3339(),
-                                          "human_date": art.created_short(),
-                                          "tags": art_tags})
+                data = [article_tag % {"tag_url": _trans(tag_),
+                                       "tag": tag_,
+                                       "server_root": self._cfg["server_root"]}
+                        for tag_ in art.tags]
+
+                art_tags = ", ".join(data)
+                data = {"article_url": art.html_fname,
+                        "title": art.title,
+                        "datetime": art.created_rfc3339(),
+                        "human_date": art.created_short(),
+                        "tags": art_tags}
+                data.update(self._cfg)
+                titles.append(headline % data)
 
             title = self._cfg['i18n_art_tags'] % tag
             data = {"title": title + " - ",
@@ -507,15 +517,19 @@ class Kiroku:
         titles = []
         for art in self.articles[:5]:
             short_body = art.body.split("<!-- more -->")[0]
-            art_tags = ", ".join([article_tag %
-                                  {"tag_url": _trans(tag_), "tag": tag_}
-                                  for tag_ in art.tags])
-            titles.append(article_short % {"article_url": art.html_fname,
-                                           "title": art.title,
-                                           "datetime": art.created_rfc3339(),
-                                           "human_date": art.created_short(),
-                                           "short_body": short_body,
-                                           "tags": art_tags})
+            data = [article_tag % {"tag_url": _trans(tag_),
+                                   "tag": tag_,
+                                   "server_root": self._cfg["server_root"]}
+                    for tag_ in art.tags]
+            art_tags = ", ".join(data)
+            data = {"article_url": art.html_fname,
+                    "title": art.title,
+                    "datetime": art.created_rfc3339(),
+                    "human_date": art.created_short(),
+                    "short_body": short_body,
+                    "tags": art_tags}
+            data.update(self._cfg)
+            titles.append(article_short % data)
 
         data = {"title": "",
                 "header": "",
@@ -540,14 +554,18 @@ class Kiroku:
 
         titles = []
         for art in self.articles[5:]:
-            art_tags = ", ".join([article_tag %
-                                  {"tag_url": _trans(tag_), "tag": tag_}
-                                  for tag_ in art.tags])
-            titles.append(headline % {"article_url": art.html_fname,
-                                      "title": art.title,
-                                      "datetime": art.created_rfc3339(),
-                                      "human_date": art.created_short(),
-                                      "tags": art_tags})
+            data = [article_tag % {"tag_url": _trans(tag_),
+                                   "tag": tag_,
+                                   "server_root": self._cfg["server_root"]}
+                    for tag_ in art.tags]
+            art_tags = ", ".join(data)
+            data = {"article_url": art.html_fname,
+                    "title": art.title,
+                    "datetime": art.created_rfc3339(),
+                    "human_date": art.created_short(),
+                    "tags": art_tags}
+            data.update(self._cfg)
+            titles.append(headline % data)
         title = self._cfg['i18n_archives']
         data = {"title": title + " - ",
                 "header": header % {"title": title},
@@ -572,9 +590,11 @@ class Kiroku:
         article_footer = self._templ("article_footer")
         article_tag = self._templ("article_tag")
         for art in self.articles:
-            art_tags = ", ".join([article_tag %
-                                  {"tag_url": _trans(tag_), "tag": tag_}
-                                  for tag_ in art.tags])
+            data = [article_tag % {"tag_url": _trans(tag_),
+                                   "tag": tag_,
+                                   "server_root": self._cfg["server_root"]}
+                    for tag_ in art.tags]
+            art_tags = ", ".join(data)
 
             header = article_header % {"title": art.title,
                                        "datetime": art.created_rfc3339(),
@@ -686,10 +706,12 @@ class Kiroku:
 
         tag_cloud = []
         for key in sorted(self.tags):
-            tag_cloud.append(tag_tmpl % {"size": self.tag_cloud[key],
-                                         "tag": key,
-                                         "tag_url": _trans(key),
-                                         "count": tag_wieght[key]})
+            data = {"size": self.tag_cloud[key],
+                    "tag": key,
+                    "tag_url": _trans(key),
+                    "count": tag_wieght[key]}
+            data.update(self._cfg)
+            tag_cloud.append(tag_tmpl % data)
 
         self.tag_cloud = " ".join(tag_cloud)
 
@@ -700,7 +722,7 @@ class Kiroku:
                      "seppuku." % target)
             shutil.rmtree(target)
 
-        Feedback("Initializing `%s'…" % target)
+        Feedback("Initializing `%s'" % target)
 
         os.mkdir(target)
         os.chdir(target)
@@ -714,19 +736,12 @@ class Kiroku:
 
         shutil.copytree(os.path.join(DATA_DIR, "templates"), ".templates")
         shutil.copy(os.path.join(DATA_DIR, "config.ini.example"), ".")
-        Feedback('…all done.')
-        Feedback("Now, go to directory %s, rename `config.ini.example' to "
-                 "`config.ini', edit it,\nwrite some posts, place them in "
-                 "`articles' directory, and issue:\n    kiroku build\n"
-                 "copy `build' contents to your server and that's it!"
-                 % target)
+        Feedback('OK.')
         return 0
 
 
-def run():
-    """Parse command line and execute appropriate action"""
-    Feedback.output_function = print
-
+def parse_commandline(args=None):
+    """Parse commandline options. Return the object"""
     parser = ArgumentParser(description=__doc__,
                             formatter_class=RawDescriptionHelpFormatter)
 
@@ -742,14 +757,15 @@ def run():
                                      "selected file. If no file path is "
                                      "provided, default `articles' will be "
                                      "processed.")
-    build_cmd.add_argument("dir_or_path", nargs="?")
-    build_cmd.add_argument("-p", "--pretend", help="Don't do the action, just "
-                           "give the info what would gonna to happen.",
-                           action="store_true", default=False)
     build_cmd.set_defaults(func=build)
 
-    arguments = parser.parse_args()
+    arguments = parser.parse_args(args)
 
+    return arguments
+
+
+def get_config():
+    """Read and return configuration dictionary."""
     config = CONFIG
     conf = SafeConfigParser(defaults=CONFIG)
     conf.read("config.ini")
@@ -772,5 +788,11 @@ def run():
                                languages=[config['locale']],
                                fallback=True)
     config.update(get_i18n_strings(lang.gettext))
+    return config
 
-    sys.exit(arguments.func(arguments, config))
+
+def run():
+    """Parse command line and execute appropriate action"""
+    Feedback.output_function = print
+    arguments = parse_commandline()
+    sys.exit(arguments.func(arguments, get_config()))

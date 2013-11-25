@@ -3,6 +3,7 @@
 """
 Tests for reStructuredText translator and writer
 """
+from copy import deepcopy
 from datetime import datetime, timedelta
 from gettext import gettext
 from shutil import rmtree, copytree
@@ -79,6 +80,7 @@ class TestArticle(unittest.TestCase):
     def setUp(self):
         """Assumption is, that all operations are performed in current
         directory with hardcoded article directory"""
+        self._config = deepcopy(kiroku.CONFIG)
         kiroku.CONFIG.update(kiroku.get_i18n_strings(gettext))
         self._curdir = os.path.abspath(os.curdir)
         self._dir = mkdtemp()
@@ -95,6 +97,7 @@ class TestArticle(unittest.TestCase):
         """Clean up"""
         os.chdir(self._curdir)
         rmtree(self._dir)
+        kiroku.CONFIG = deepcopy(self._config)
 
     def test_initialization(self):
         """Tests initialization of the article"""
@@ -319,6 +322,7 @@ class TestRss(unittest.TestCase):
 
     def setUp(self):
         """Setup"""
+        self._config = deepcopy(kiroku.CONFIG)
         kiroku.CONFIG.update(kiroku.get_i18n_strings(gettext))
         self._curdir = os.path.abspath(os.curdir)
         self._dir = mkdtemp()
@@ -329,6 +333,7 @@ class TestRss(unittest.TestCase):
         """Clean up"""
         os.chdir(self._curdir)
         rmtree(self._dir)
+        kiroku.CONFIG = deepcopy(self._config)
 
     def test_initialization(self):
         """Test initialization"""
@@ -444,21 +449,13 @@ class TestKiroku(unittest.TestCase):
     def setUp(self):
         """Assumption is, that all operations are performed in current
         directory with hardcoded article directory"""
+        self._config = deepcopy(kiroku.CONFIG)
+        kiroku.CONFIG.update(kiroku.get_i18n_strings(gettext))
         self._curdir = os.path.abspath(os.curdir)
         self._dir = mkdtemp()
         os.chdir(self._dir)
         os.makedirs('articles/images')
         copytree(os.path.join(kiroku.DATA_DIR, "templates"), ".templates")
-
-        # kiroku.ARTICLE_SHORT = ("*start* %(title)s\n%(tags)s\nurl_"
-                                # "%(article_url)s\n%(short_body)s *end*")
-        # kiroku.ARTICLE_TAG = "%(tag)s"
-        # kiroku.HEADER = "<p>header1</p>"
-        # kiroku.HEADLINE = "<p>%(title)s</p>"
-        # kiroku.MAIN = "%(body)s"
-        # kiroku.ARTICLE_HEADER = "<ah>%(title)s</ah>"
-        # kiroku.ARTICLE_FOOTER = "<af>%(datetime)s</af>"
-        # kiroku.TAG = "%(size)d\n%(tag)s\ntag_%(tag_url)s\n%(count)s\n"
 
         for fname, content in MOCK_ARTICLES.items():
             full_path = os.path.join('articles', fname)
@@ -499,6 +496,7 @@ class TestKiroku(unittest.TestCase):
         """Clean up"""
         os.chdir(self._curdir)
         rmtree(self._dir)
+        kiroku.CONFIG = deepcopy(self._config)
 
     def test_initialization(self):
         """Test initialization of Kiroku object"""
@@ -907,6 +905,45 @@ class TestKiroku(unittest.TestCase):
                               'w': {'foo': [[0, 1]],
                                     'bar': [[1, 1]]}})
 
+    def test_init(self):
+        """Test init() method"""
+        rec = kiroku.Kiroku(kiroku.CONFIG)
+        rec.init("foo")
+        self.assertEqual(os.path.join(self._dir, "foo"), os.getcwd())
+        self.assertTrue(os.path.exists("articles"))
+        self.assertTrue(os.path.exists(".css"))
+        self.assertTrue(os.path.exists(".js"))
+        self.assertTrue(os.path.exists(".templates"))
+        self.assertTrue(os.path.exists("config.ini.example"))
+
+        os.chdir("..")
+
+        class Interceptor:
+            """Interceptor class for grabbing the first message"""
+            def __init__(self):
+                """Init the message"""
+                self.msg = None
+
+            def out_mock(self, arg):
+                """store the message"""
+                if not self.msg:
+                    self.msg = arg
+
+        interceptor = Interceptor()
+
+        kiroku.Feedback.output_function = interceptor.out_mock
+
+        # recreate the project
+        self.assertEqual(interceptor.msg, None)
+        rec.init("foo")
+        self.assertEqual(os.path.join(self._dir, "foo"), os.getcwd())
+        self.assertTrue(os.path.exists("articles"))
+        self.assertTrue(os.path.exists(".css"))
+        self.assertTrue(os.path.exists(".js"))
+        self.assertTrue(os.path.exists(".templates"))
+        self.assertTrue(os.path.exists("config.ini.example"))
+        self.assertIn("`foo' exists", interceptor.msg)
+
 
 class TestFunctions(unittest.TestCase):
     """Test build and init functions"""
@@ -925,6 +962,7 @@ class TestFunctions(unittest.TestCase):
         """Clean up"""
         kiroku.Kiroku = self._kiroku
         os.chdir(self._curdir)
+        rmtree(self._dir)
 
     def test_build(self):
         """Test build funtion"""
@@ -941,6 +979,56 @@ class TestFunctions(unittest.TestCase):
         self.assertRaises(AttributeError, kiroku.init, arg, kiroku.CONFIG)
         arg.path = 'foo'
         self.assertEqual(kiroku.init(arg, kiroku.CONFIG), 0)
+
+    def test_get_config(self):
+        """Test get_config function"""
+        old_config = deepcopy(kiroku.CONFIG)
+
+        # check defaults
+        conf = kiroku.get_config()
+
+        self.assertEqual(len(conf), 21)
+        self.assertEqual(conf['locale'], 'C')
+        self.assertEqual(conf['server_name'], 'localhost')
+        self.assertEqual(conf['server_protocol'], 'http')
+        self.assertEqual(conf['server_root'], '/')
+        self.assertEqual(conf['site_desc'], 'Yet another blog')
+        self.assertEqual(conf['site_footer'], 'The footer')
+        self.assertEqual(conf['site_name'], 'Kiroku')
+
+        with open("config.ini", "w") as fobj:
+            fobj.write("[kiroku]\n")
+            fobj.write("locale = en_US\n")
+            fobj.write("server_name = foo.com\n")
+            fobj.write("server_protocol = https\n")
+            fobj.write("server_root = bar\n")
+            fobj.write("site_desc = la dee da\n")
+            fobj.write("site_footer = foo-ter\n")
+            fobj.write("site_name = Custom Name\n")
+
+        kiroku.CONFIG = deepcopy(old_config)
+
+        conf = kiroku.get_config()
+        self.assertEqual(len(conf), 21)
+        self.assertEqual(conf['locale'], 'en_US')
+        self.assertEqual(conf['server_name'], 'foo.com')
+        self.assertEqual(conf['server_protocol'], 'https')
+        self.assertEqual(conf['server_root'], '/bar/')
+        self.assertEqual(conf['site_desc'], 'la dee da')
+        self.assertEqual(conf['site_footer'], 'foo-ter')
+        self.assertEqual(conf['site_name'], 'Custom Name')
+
+        kiroku.CONFIG = deepcopy(old_config)
+
+    def test_parse_commandline(self):
+        """Test parse_commandline function"""
+        self.assertRaises(SystemExit, kiroku.parse_commandline, [])
+        arguments = kiroku.parse_commandline(['init', 'foo'])
+        self.assertEqual(arguments.func, kiroku.init)
+        self.assertEqual(arguments.path, 'foo')
+
+        arguments = kiroku.parse_commandline(['build'])
+        self.assertEqual(arguments.func, kiroku.build)
 
 
 class TestFeedback(unittest.TestCase):
