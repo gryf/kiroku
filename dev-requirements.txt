@@ -3,3 +3,4 @@ Pygments
 coverage
 slimit
 pep8
+pylint
