@@ -103,6 +103,8 @@
     }
 
     $(function () {
+        $('#search').show();
+
         if (!templates) {
             $.getJSON("templates.json", {async: false})
             .done(function (res) {

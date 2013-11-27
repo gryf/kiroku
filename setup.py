@@ -16,6 +16,11 @@ try:
 except ImportError:
     coverage = None
 
+try:
+    import slimit
+except ImportError:
+    slimit = None
+
 
 def find_dists():
     """Grab all of the files, compare it against blacklist and return as
@@ -30,9 +35,10 @@ def find_dists():
     return retlist
 
 
-class GeneratePot(Command):
-    """Generate pot template using xgettext"""
+class MinifyJavaScript(Command):
+    """Minify javascript files under kiroku/data/js directory"""
     user_options = []
+    description = __doc__
 
     def initialize_options(self):
         """Has to beimplemented; not needed though"""
@@ -42,14 +48,48 @@ class GeneratePot(Command):
 
     def run(self):
         """Execute command"""
-        os.system('xgettext -o kiroku/data/locale/kiroku.pot kiroku.py')
+        if not slimit:
+            print("You need `slimit' module to minify JavaScript files")
+            return
 
-GeneratePot.description = GeneratePot.__doc__
+        for root, dirs, files in os.walk("kiroku/data/js"):
+            for fname in files:
+                if ".min." in fname:
+                    continue
+
+                fname = os.path.join(root, fname)
+                minified = None
+                new_name, ext = os.path.splitext(fname)
+                new_name = os.path.join(new_name + ".min" + ext)
+
+                with open(fname) as fobj:
+                    minified = slimit.minify(fobj.read(), mangle=True)
+
+                if minified:
+                    with open(new_name, "w") as fobj:
+                        fobj.write(minified)
+
+
+class GeneratePot(Command):
+    """Generate `pot' template using xgettext"""
+    user_options = []
+    description = __doc__
+
+    def initialize_options(self):
+        """Has to beimplemented; not needed though"""
+
+    def finalize_options(self):
+        """Has to beimplemented; not needed though"""
+
+    def run(self):
+        """Execute command"""
+        os.system('xgettext -o kiroku/data/locale/kiroku.pot kiroku/*.py')
 
 
 class GenerateMo(Command):
-    """Generate message catalogs out of po files"""
+    """Generate message catalogs out of `po' files"""
     user_options = []
+    description = __doc__
 
     def initialize_options(self):
         """Has to beimplemented; not needed though"""
@@ -72,16 +112,17 @@ class GenerateMo(Command):
             if not os.path.exists(path):
                 os.makedirs(path)
 
+            mo_file = os.path.join(path, 'kiroku.mo')
             os.system("msgfmt -o %(path)s %(fname)s" %
-                      {'path': os.path.join(path, 'kiroku.mo'),
-                       'fname': files[lang]})
-
-GenerateMo.description = GenerateMo.__doc__
+                      {'path': mo_file, 'fname': files[lang]})
+            # append generated file path without leading 'kiroku/'
+            self.distribution.package_data['kiroku'].append(mo_file[7:])
 
 
 class TestRunner(Command):
     """Run the test suite with optional coverage report"""
     user_options = []
+    description = __doc__
 
     def initialize_options(self):
         """Has to beimplemented; not needed though"""
@@ -127,12 +168,10 @@ class TestRunner(Command):
             TextTestRunner().run(suite)
             if coverage:
                 cov.stop()
-                cov.report(include=["*/kiroku/*.py"])
+                cov.report(include=["*/kiroku/*.py"], omit=["*test_*"])
         finally:
             os.chdir(_curdir)
             shutil.rmtree(_dir)
-
-TestRunner.description = TestRunner.__doc__
 
 
 class CustomBuild(build.build):
@@ -150,13 +189,6 @@ class CustomBuild(build.build):
 class CustomSdist(sdist.sdist):
     """Additional steps for sdist process"""
 
-    def make_release_tree(self, base_dir, files):
-        """Modify build process"""
-        self.copy_file("README", "kiroku/data/articles/readme.rst")
-        files.append("kiroku/data/articles/readme.rst")
-        super().make_release_tree(base_dir, files)
-        os.unlink("kiroku/data/articles/readme.rst")
-
     def run(self):
         GenerateMo(self.distribution).run()
         super().run()
@@ -169,7 +201,7 @@ setup(name="kiroku",
       description="Static blog generator",
       author="Roman Dobosz",
       author_email="gryf73@gmail.com",
-      url="https://bitbucket.org/gryf/kiroku.git",
+      url="https://bitbucket.org/gryf/kiroku",
       download_url="https://bitbucket.org/gryf/kiroku.git",
       keywords=["web", "static", "generator", "blog"],
       requires=["docutils"],
@@ -185,8 +217,9 @@ setup(name="kiroku",
                    "Topic :: Text Processing :: Markup",
                    "Topic :: Text Processing :: Markup :: HTML"],
       long_description=open("README").read(),
-      cmdclass={'genpot': GeneratePot,
+      cmdclass={'build': CustomBuild,
                 'gencat': GenerateMo,
-                'test': TestRunner,
-                'build': CustomBuild,
-                'sdist': CustomSdist})
+                'genpot': GeneratePot,
+                'minify': MinifyJavaScript,
+                'sdist': CustomSdist,
+                'test': TestRunner})

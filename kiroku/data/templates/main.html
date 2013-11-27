@@ -42,12 +42,17 @@
 
             <aside>
                 <section>
-                    <h2>%(i18n_search)s</h2>
-                    <form id="searchform" action="">
-                        <input name="q"
-                            placeholder="%(i18n_search_placeholder)s"
-                            type="search">
-                    </form>
+                    <noscript>
+                        <p>%(i18n_noscript)s</p>
+                    </noscript>
+                    <div id="search">
+                        <h2>%(i18n_search)s</h2>
+                        <form id="searchform" action="">
+                            <input name="q"
+                                placeholder="%(i18n_search_placeholder)s"
+                                type="search">
+                        </form>
+                    </div>
                 </section>
 
                 <section>

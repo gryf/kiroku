@@ -97,6 +97,8 @@ def get_i18n_strings(_):
             "i18n_archives": _("Archives"),
             "i18n_main": _("Blog"),
             "i18n_rss_feed": _("RSS feed"),
+            "i18n_noscript": _("Please, enable JavaScript in order to use "
+                               "searching feature."),
             "i18n_search": _("Search"),
             "i18n_search_placeholder": _("Search…"),
             "i18n_search_results_ttile": _("Search results"),

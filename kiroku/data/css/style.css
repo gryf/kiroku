@@ -83,6 +83,10 @@ input {
     transition: width 0.7s ease 0s;
 }
 
+#search {
+    display: none
+}
+
 /* reset webkit search input styles */
 input[type=search] {
 	-webkit-appearance: none;

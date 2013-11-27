@@ -95,7 +95,6 @@ generate entire site:
 Generated HTML files, style, JavaScript files - all of that will be placed in
 the ``build`` directory.
 
-
 Articles/pages
 --------------
 
@@ -213,6 +212,61 @@ Translations
 For now only Polish translation is available. Any help with translation is
 welcomed :)
 
+Development
+-----------
+
+For development, `virtualenv`_ is strongly recommended. Following dependencies
+and tools are required. Python packages:
+
+- `coverage`_ - tool for code coverage measurement
+- `slimit`_ - for minifying JavaScript files
+
+Although not necessary, but recommended are two additional packages:
+
+- `pep8`_
+- `pylint`_
+
+Which **should** be used during development.
+
+All Python dependencies can be installed inside *virtualenv* environment with
+``pip`` command:
+
+.. code:: shell-session
+
+   user@localhost $ virtualenv -p python3 kiroku-ve
+   user@localhost $ cd kiroku-ve
+   user@localhost kiroku-ve $ . bin/activate
+   (kiroku-ve)user@localhost kiroku-ve $ pip install -r dev-requirements.txt
+
+Among the mentioned above packages it will also (try to) install `docutils`_ and
+`pygments`_ modules.
+
+If there is a plan for creating new message catalogs, or generating them, there
+will be also `GNU gettext`_ needed (tools like ``xgettext`` and  ``msgfmt`` in
+particular).
+
+Usually, for simple tasks automation I've been using ``Makefile`` and ``make``
+utility, or the `paver`_ python task manager. However I've been trying to
+decrease external dependencies only to the really necessary modules, so I've
+implemented extra commands to the setup script, so that it can do a bit more
+than you'll expect from ``setup.py`` :)
+
+The commands are as follows:
+
+- ``test`` - execute the tests, and display the code coverage for them,
+- ``minify`` - minify JavaScript files (for now it is only one),
+- ``genpot`` - generate ``.pot`` file out of the source files. File
+  ``kiroku.pot`` will be placed under ``kiroku/data/locale`` directory,
+- ``gencat`` - generate message catalogs for every available source ``.po``
+  files.
+
+Note, that during build, message catalogs will (try to) be regenerated,
+otherwise the interface will be in English by default, regardless of the
+language in the config.
+
+Every command should be executed in the root directory of the kiroku package
+(the directory where ``setup.py`` exists).
+
 License
 -------
 
@@ -248,3 +302,10 @@ This software is licensed under BSD License::
 .. _pygments: http://pygments.org
 .. _fields: http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#field-lists
 .. _datetime module: http://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
+.. _virtualenv: http://www.virtualenv.org
+.. _coverage: http://nedbatchelder.com/code/coverage/
+.. _slimit: https://github.com/rspivak/slimit
+.. _GNU gettext: http://www.gnu.org/software/gettext/
+.. _paver: http://paver.github.io/paver/
+.. _pep8: http://pep8.readthedocs.org/
+.. _pylint: http://www.logilab.org/project/pylint

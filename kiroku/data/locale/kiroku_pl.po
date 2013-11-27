@@ -6,10 +6,10 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: 1.0\n"
+"Project-Id-Version: 0.8.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-11-14 19:46+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"POT-Creation-Date: 2013-11-26 21:10+0100\n"
+"PO-Revision-Date: 2013-11-26 21:11:41+0100\n"
 "Last-Translator: Roman Dobosz <gryf73@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: Pl\n"
@@ -17,59 +17,63 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: kiroku.py:93
+#: kiroku/kiroku.py:94
 #, python-format
 msgid "Articles with tag: %s"
 msgstr "Artykuły z etykietą: %s"
 
-#: kiroku.py:94
+#: kiroku/kiroku.py:95
 msgid "Tags"
 msgstr "Etykiety"
 
-#: kiroku.py:95
+#: kiroku/kiroku.py:96
 msgid "About me"
 msgstr "O mnie"
 
-#: kiroku.py:96
+#: kiroku/kiroku.py:97
 msgid "Archives"
 msgstr "Archiwum"
 
-#: kiroku.py:97
+#: kiroku/kiroku.py:98
 msgid "Blog"
 msgstr "Blog"
 
-#: kiroku.py:98
+#: kiroku/kiroku.py:99
 msgid "RSS feed"
 msgstr "Kanał RSS"
 
-#: kiroku.py:99
+#: kiroku/kiroku.py:100
+msgid "Please, enable JavaScript in order to use searching feature."
+msgstr "By skorzystać z wyszukiwarki, proszę włączyć JavaScript."
+
+#: kiroku/kiroku.py:102
 msgid "Search"
 msgstr "Szukaj"
 
-#: kiroku.py:100
+#: kiroku/kiroku.py:103
 msgid "Search…"
 msgstr "Szukaj…"
 
-#: kiroku.py:101
+#: kiroku/kiroku.py:104
 msgid "Search results"
 msgstr "Rezultaty wyszukiwania"
 
-#: kiroku.py:102
+#: kiroku/kiroku.py:105
 msgid "Search in progress. Please wait."
 msgstr "Proszę czekać, trwa przeszukiwanie."
 
-#: kiroku.py:103
+#: kiroku/kiroku.py:106
 msgid "Results for phrase \"{sp}\""
 msgstr "Rezultaty dla frazy \"{sp}\""
 
-#: kiroku.py:104
+#: kiroku/kiroku.py:107
 msgid "No results for phrase \"{sp}\""
 msgstr "Nie znaleziono żadnych wpisów dla frazy \"{sp}\""
 
-#: kiroku.py:105
+#: kiroku/kiroku.py:108
 msgid "Subscribe"
 msgstr "Subskrybuj"
 
-#: kiroku.py:106
+#: kiroku/kiroku.py:109
 msgid "Subscribe via RSS"
 msgstr "Subskrybuj kanał RSS"

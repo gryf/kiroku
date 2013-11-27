@@ -987,7 +987,7 @@ class TestFunctions(unittest.TestCase):
         # check defaults
         conf = kiroku.get_config()
 
-        self.assertEqual(len(conf), 21)
+        self.assertEqual(len(conf), 22)
         self.assertEqual(conf['locale'], 'C')
         self.assertEqual(conf['server_name'], 'localhost')
         self.assertEqual(conf['server_protocol'], 'http')
@@ -1009,7 +1009,7 @@ class TestFunctions(unittest.TestCase):
         kiroku.CONFIG = deepcopy(old_config)
 
         conf = kiroku.get_config()
-        self.assertEqual(len(conf), 21)
+        self.assertEqual(len(conf), 22)
         self.assertEqual(conf['locale'], 'en_US')
         self.assertEqual(conf['server_name'], 'foo.com')
         self.assertEqual(conf['server_protocol'], 'https')
