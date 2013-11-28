@@ -195,7 +195,7 @@ class Template:
                 continue
             templ.append(line + "\n")
 
-        self.templates[template_name] = "".join(templ)
+        self.templates[template_name] = "".join(templ).strip()
 
 
 class Rss:
