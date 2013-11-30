@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-# encoding: utf-8
 """
-Tests for reStructuredText translator and writer
+Tests for kiroku module
 """
 from copy import deepcopy
 from datetime import datetime, timedelta

@@ -1,9 +1,5 @@
-#!/usr/bin/env python3
-# encoding: utf-8
 """
-Kiroku - Manage and create static website.
-
-See README for details
+Article class for article representation in kiroku
 """
 from datetime import datetime
 import locale

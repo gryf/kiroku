@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-# encoding: utf-8
 """
-Tests for reStructuredText translator and writer
+Tests for template module
 """
 from shutil import rmtree
 from tempfile import mkdtemp

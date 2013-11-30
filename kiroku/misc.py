@@ -1,3 +1,4 @@
+# encoding: utf-8
 """
 A table for translate() method to convert a string suitable for placing it
 into an url.

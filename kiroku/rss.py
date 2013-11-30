@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# encoding: utf-8
 """
 RSS class responsible for managing entries in RSS feed and generating XML for
 kiroku
