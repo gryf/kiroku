@@ -8,7 +8,6 @@ See README for details
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from collections import defaultdict
 from configparser import SafeConfigParser
-from datetime import datetime
 import gettext
 from math import log
 from operator import attrgetter
@@ -19,9 +18,11 @@ import re
 import shutil
 import sys
 
+from kiroku.article import Article
+from kiroku.misc import TR_TABLE
 from kiroku.rest import BlogArticle
-from kiroku.naive_tzinfo import get_rfc3339, get_rfc822
-from kiroku.search import MLStripper
+from kiroku.rss import Rss
+from kiroku.template import Template
 
 
 APP_NAME = "kiroku"
@@ -36,57 +37,6 @@ CONFIG = {'server_name': "localhost",
           'site_desc': "Yet another blog",
           'site_footer': "The footer",
           'locale': "C"}
-
-TR_TABLE = {ord("ą"): "a",
-            ord("ć"): "c",
-            ord("ę"): "e",
-            ord("ł"): "l",
-            ord("ń"): "n",
-            ord("ó"): "o",
-            ord("ś"): "s",
-            ord("ź"): "z",
-            ord("ż"): "z",
-            ord("Ą"): "A",
-            ord("Ć"): "C",
-            ord("Ę"): "E",
-            ord("Ł"): "L",
-            ord("Ń"): "N",
-            ord("Ó"): "O",
-            ord("Ś"): "S",
-            ord("Ź"): "Z",
-            ord("Ż"): "Z",
-            ord("'"): "_",
-            ord("!"): "",
-            ord('"'): "_",
-            ord("#"): "",
-            ord("$"): "",
-            ord("%"): "",
-            ord("&"): "and",
-            ord("'"): "_",
-            ord("("): "",
-            ord(")"): "",
-            ord("*"): "",
-            ord("+"): "",
-            ord(","): "",
-            ord("."): "",
-            ord("/"): "",
-            ord(":"): "",
-            ord(";"): "",
-            ord("<"): "",
-            ord("="): "",
-            ord(">"): "",
-            ord("?"): "",
-            ord("@"): "",
-            ord("["): "",
-            ord("\\"): "",
-            ord("]"): "",
-            ord("^"): "",
-            ord("`"): "",
-            ord("{"): "",
-            ord("|"): "",
-            ord("}"): "",
-            ord(" "): "_",
-            ord("~"): ""}
 
 
 def get_i18n_strings(_):
@@ -121,11 +71,6 @@ def init(argparse, cfg):
     return kiroku.init(argparse.path)
 
 
-def _trans(string):
-    """Translate string to remove accented letters"""
-    return string.translate(TR_TABLE)
-
-
 def _minify_css(fname):
     """Minify CSS (destructive!)"""
     comments = re.compile('\/\*.*?\*\/')
@@ -142,200 +87,6 @@ def _minify_css(fname):
 
     with open(fname, "w") as fobj:
         fobj.write(css)
-
-
-class Template:
-    """Simple class for template storage"""
-
-    def __init__(self):
-        """Initialize object"""
-        self.templates = {}
-
-    def __call__(self, template_name):
-        """Get the template"""
-        if template_name not in self.templates:
-            self._read_template(template_name)
-
-        return self.templates[template_name]
-
-    def _read_template(self, template_name):
-        """
-        Return the template out of the template name - so it is the basename
-        of the template file without the file extension.
-
-        Note, that all html comments (<!-- -->) will be truncated.
-        If compress is set to True all of trailing spaces will be removed out
-        of the template (you can call it "minifying" html)
-        """
-
-        templ = []
-        comments = re.compile("<!--.*?-->", re.DOTALL)
-
-        try:
-            with open(".templates/%s.html" % template_name) as fobj:
-                content = fobj.read()
-        except IOError:
-            with open(".templates/%s.xml" % template_name) as fobj:
-                content = fobj.read()
-
-        content = re.sub(comments, "", content)
-
-        for line in content.split("\n"):
-            if not line:
-                continue
-            templ.append(line + "\n")
-
-        self.templates[template_name] = "".join(templ).strip()
-
-
-class Rss:
-    """Rss representation class"""
-    def __init__(self, cfg):
-        """Initialize RSS container"""
-        self.items = []
-        self._templ = Template()
-        self._cfg = cfg
-
-    def add(self, item):
-        """Add rss item to the list. Parameter item is a dictionary which
-        contains 4 keys with corresponding values:
-
-            title - title of the article
-            link - link to the article
-            desc - description/first paragraph of the article
-            date - publish date in format "Sun, 29 Sep 2002 19:09:28 GMT"
-        """
-        rss_item = self._templ("rss_item")
-        item.update(self._cfg)
-        self.items.append(rss_item % item)
-
-    def get(self):
-        """Return RSS XML string"""
-        rss_main = self._templ("rss_main")
-
-        data = {"items": "\n".join(self.items)}
-        data.update(self._cfg)
-        return rss_main % data
-
-
-class Article:
-    """Represents article"""
-
-    def __init__(self, fname, cfg):
-        """Create the obj"""
-        self._fname = fname
-        self.body = None
-        self.created = None
-        self.html_fname = None
-        self.tags = []
-        self.title = None
-        self._cfg = cfg
-
-    def read(self):
-        """Read article and transform to html"""
-        html, attrs = self._transfrom_to_html()
-        self.body = html
-        self._process_attrs(attrs)
-        self._set_html_name()
-
-    def get_words(self):
-        """Return word dictionary out of the html and article attributes"""
-        ml_stripper = MLStripper(strict=False)
-        ml_stripper.feed(self.body)
-        return ml_stripper.get_data()
-
-    def created_short(self):
-        """Return human created date"""
-        return self.created.strftime("%d %b, %Y")
-
-    def created_detailed(self):
-        """Return human created date"""
-        return self.created.strftime("%A, %d %b, %Y, %X")
-
-    def created_rfc3339(self):
-        """Return RFC 3339 formatted date"""
-        return get_rfc3339(self.created)
-
-    def created_rfc822(self):
-        """Return RFC 822 formatted date"""
-        # RFC 822 doesn't allow localized strings
-        locale.setlocale(locale.LC_ALL, "C")
-        date = get_rfc822(self.created)
-        locale.setlocale(locale.LC_ALL, self._cfg["locale"])
-        return date
-
-    def _transfrom_to_html(self):
-        """Return processed article and its fields"""
-        html = attrs = None
-        with open(self._fname) as fobj:
-            html, attrs = BlogArticle(fobj.read()).publish()
-        return html, attrs
-
-    def _process_attrs(self, attrs):
-        """Process provided article attributes"""
-        action_map = {'datetime': self._set_ctime,
-                      'tags': self._set_tags,
-                      'title': self._set_title}
-
-        for key in attrs:
-            if action_map.get(key):
-                action_map[key](attrs[key])
-
-        if not self.created:
-            self._set_ctime()
-
-        if not self.title:
-            self.title = os.path.splitext(os.path.basename(self._fname))[0]
-
-    def _set_ctime(self, date_str=None):
-        """Set article creation time either with provided date_str, or via
-        article files' mtime."""
-        if date_str:
-            self.created = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
-        else:
-            mtime = os.stat(self._fname).st_mtime
-            self.created = datetime.fromtimestamp(mtime)
-
-    def _set_tags(self, tags_str):
-        """Process tags into a list. List of tags is sorted in alphabetical
-        order"""
-        tags = []
-        for tag in tags_str.split(","):
-            tag = tag.strip()
-            tags.append(tag)
-        tags.sort()
-
-        self.tags = tags
-
-    def _set_title(self, title):
-        """Set title out of provided title."""
-        if title:
-            self.title = title
-
-    def _set_html_name(self):
-        """Caclulate html uri part"""
-        # Files are sometimes named:
-        # YYYY-MM-DD_some_informative_name.rst
-        re_fname = re.compile("\d{4}-\d{2}-\d{2}_(.*)")
-
-        dummy, name = os.path.split(self._fname)
-        name, dummy = os.path.splitext(name)
-
-        name = _trans(name)
-
-        match = re_fname.match(name)
-        if match:
-            # remove the prepending dates out of filename
-            self.html_fname = match.groups()[0].replace("_", "-") + ".html"
-        else:
-            # default.
-            name, dummy = os.path.splitext(name)
-            name = name.replace("_", "-")
-            self.html_fname = name + ".html"
-
-    def get_short_body(self):
-        """Return part of the HTML body up to first <!-- more --> comment"""
-        return self.body.split("<!-- more -->")[0].strip()
 
 
 class Kiroku:
@@ -427,7 +178,7 @@ class Kiroku:
                  "w": {}}  # word list
         _ids = []
         for art in self.articles:
-            data = [article_tag % {"tag_url": _trans(tag_),
+            data = [article_tag % {"tag_url": tag_.translate(TR_TABLE),
                                    "tag": tag_,
                                    'server_root': self._cfg['server_root']}
                     for tag_ in art.tags]
@@ -470,7 +221,7 @@ class Kiroku:
         for tag in tags:
             titles = []
             for art in tags[tag]:
-                data = [article_tag % {"tag_url": _trans(tag_),
+                data = [article_tag % {"tag_url": tag_.translate(TR_TABLE),
                                        "tag": tag_,
                                        "server_root": self._cfg["server_root"]}
                         for tag_ in art.tags]
@@ -495,8 +246,8 @@ class Kiroku:
             data.update(self._cfg)
             data["footer"] = ""
 
-            with open(os.path.join("build", "tag-%s.html" % _trans(tag)),
-                      "w") as fobj:
+            with open(os.path.join("build", "tag-%s.html" %
+                                   tag.translate(TR_TABLE)), "w") as fobj:
                 fobj.write(main % data)
 
     def _index(self):
@@ -509,7 +260,7 @@ class Kiroku:
         titles = []
         for art in self.articles[:5]:
             short_body = art.body.split("<!-- more -->")[0]
-            data = [article_tag % {"tag_url": _trans(tag_),
+            data = [article_tag % {"tag_url": tag_.translate(TR_TABLE),
                                    "tag": tag_,
                                    "server_root": self._cfg["server_root"]}
                     for tag_ in art.tags]
@@ -546,7 +297,7 @@ class Kiroku:
 
         titles = []
         for art in self.articles[5:]:
-            data = [article_tag % {"tag_url": _trans(tag_),
+            data = [article_tag % {"tag_url": tag_.translate(TR_TABLE),
                                    "tag": tag_,
                                    "server_root": self._cfg["server_root"]}
                     for tag_ in art.tags]
@@ -582,7 +333,7 @@ class Kiroku:
         article_footer = self._templ("article_footer")
         article_tag = self._templ("article_tag")
         for art in self.articles:
-            data = [article_tag % {"tag_url": _trans(tag_),
+            data = [article_tag % {"tag_url": tag_.translate(TR_TABLE),
                                    "tag": tag_,
                                    "server_root": self._cfg["server_root"]}
                     for tag_ in art.tags]
@@ -700,7 +451,7 @@ class Kiroku:
         for key in sorted(self.tags):
             data = {"size": self.tag_cloud[key],
                     "tag": key,
-                    "tag_url": _trans(key),
+                    "tag_url": key.translate(TR_TABLE),
                     "count": tag_wieght[key]}
             data.update(self._cfg)
             tag_cloud.append(tag_tmpl % data)
