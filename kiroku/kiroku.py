@@ -144,16 +144,6 @@ def _minify_css(fname):
         fobj.write(css)
 
 
-class Feedback:
-    """Simple text output wrapper"""
-    output_function = None
-
-    def __init__(self, msg):
-        """Print (or do whatever output_function will do) the message"""
-        if self.output_function:
-            self.output_function(msg)
-
-
 class Template:
     """Simple class for template storage"""
 
@@ -397,7 +387,7 @@ class Kiroku:
         self._index()
         self._archive()
         self._rss()
-        Feedback("…all done.")
+        print("…all done.")
         return 0
 
     def _rss(self):
@@ -405,7 +395,7 @@ class Kiroku:
         if not self.articles:
             return
 
-        Feedback("Writing RSS file…")
+        print("Writing RSS file…")
         rss = Rss(self._cfg)
 
         for art in self.articles[:10]:
@@ -422,7 +412,7 @@ class Kiroku:
         """Create data utilized on the client side - that includes search
         data, articles metadata (titles, links, tags dates and so on),
         template for the search output, etc"""
-        Feedback("Writing json data files…")
+        print("Writing json data files…")
         article_tag = self._templ("article_tag")
         headline = self._templ("headline")
         with open(os.path.join("build", "templates.json"), "w") as fobj:
@@ -466,7 +456,7 @@ class Kiroku:
 
     def _tag_pages(self):
         """Create pages for the tag links"""
-        Feedback("Creating tag pages…")
+        print("Creating tag pages…")
         main = self._templ("main")
         header = self._templ("header")
         article_tag = self._templ("article_tag")
@@ -511,7 +501,7 @@ class Kiroku:
 
     def _index(self):
         """Create index.html for the main site entry"""
-        Feedback("Creating `index.html'…")
+        print("Creating `index.html'…")
         main = self._templ("main")
         article_tag = self._templ("article_tag")
         article_short = self._templ("article_short")
@@ -548,7 +538,7 @@ class Kiroku:
 
     def _archive(self):
         """Create atchive.html for the site"""
-        Feedback("Create archive page…")
+        print("Create archive page…")
         main = self._templ("main")
         header = self._templ("header")
         article_tag = self._templ("article_tag")
@@ -586,7 +576,7 @@ class Kiroku:
         """
         Save articles and other generated pages into html using the templates.
         """
-        Feedback("Saving articles…")
+        print("Saving articles…")
         main = self._templ("main")
         article_header = self._templ("article_header")
         article_footer = self._templ("article_footer")
@@ -624,7 +614,7 @@ class Kiroku:
     def _walk(self):
         """Walk through the flat list of the articles and gather all of the
         goodies"""
-        Feedback("Gathering articles…")
+        print("Gathering articles…")
         art_filenames = os.listdir("articles")
 
         for fname in art_filenames:
@@ -638,15 +628,15 @@ class Kiroku:
 
         self.articles = sorted(self.articles, key=attrgetter('created'),
                                reverse=True)
-        Feedback("…done. Articles found: %d" % len(self.articles))
+        print("…done. Articles found: %d" % len(self.articles))
 
     def _about(self):
         """Save special page "about" """
         if not self._about_fname:
-            Feedback("No about page found")
+            print("No about page found")
             return
 
-        Feedback("Generating about page…")
+        print("Generating about page…")
 
         main = self._templ("main")
         header = self._templ("header")
@@ -670,7 +660,7 @@ class Kiroku:
 
     def _harvest(self, fname):
         """Gather all the necessary info for the article"""
-        Feedback("Processing `%s'" % fname)
+        print("Processing `%s'" % fname)
         art = Article(fname, self._cfg)
         art.read()
         self.articles.append(art)
@@ -680,7 +670,7 @@ class Kiroku:
 
     def _calculate_tag_cloud(self):
         """Calculate tag cloud."""
-        Feedback("Calculating tag cloud…")
+        print("Calculating tag cloud…")
         if self.tag_cloud:
             return self.tag_cloud
 
@@ -720,11 +710,11 @@ class Kiroku:
     def init(self, target):
         """Initialize given directory with details"""
         if os.path.exists(target):
-            Feedback("File or directory `%s' exists. Removing. You may commit "
+            print("File or directory `%s' exists. Removing. You may commit "
                      "seppuku." % target)
             shutil.rmtree(target)
 
-        Feedback("Initializing `%s'" % target)
+        print("Initializing `%s'" % target)
 
         os.mkdir(target)
         os.chdir(target)
@@ -738,7 +728,7 @@ class Kiroku:
 
         shutil.copytree(os.path.join(DATA_DIR, "templates"), ".templates")
         shutil.copy(os.path.join(DATA_DIR, "config.ini.example"), ".")
-        Feedback('OK.')
+        print('OK.')
         return 0
 
 
@@ -795,6 +785,5 @@ def get_config():
 
 def run():
     """Parse command line and execute appropriate action"""
-    Feedback.output_function = print
     arguments = parse_commandline()
     sys.exit(arguments.func(arguments, get_config()))

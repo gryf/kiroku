@@ -93,7 +93,8 @@ class GenerateMo(Command):
     description = __doc__
 
     def initialize_options(self):
-        """Has to beimplemented; not needed though"""
+        """Initialization. filename_pattern will filter out all filenames but
+        `kiroku_XX.po' where XX is an two letter country/language symbol"""
         self.filename_pattern = re.compile("^kiroku_(..).po$")
 
     def finalize_options(self):
@@ -166,7 +167,7 @@ class TestRunner(Command):
             loader = TestLoader()
             suite = loader.discover(os.path.join(_curdir, "tests"),
                                     pattern="test_*")
-            TextTestRunner().run(suite)
+            TextTestRunner(buffer=True).run(suite)
             if coverage:
                 cov.stop()
                 cov.report(include=["*/kiroku/*.py"], omit=["*test_*"])

@@ -918,23 +918,7 @@ class TestKiroku(unittest.TestCase):
 
         os.chdir("..")
 
-        class Interceptor:
-            """Interceptor class for grabbing the first message"""
-            def __init__(self):
-                """Init the message"""
-                self.msg = None
-
-            def out_mock(self, arg):
-                """store the message"""
-                if not self.msg:
-                    self.msg = arg
-
-        interceptor = Interceptor()
-
-        kiroku.Feedback.output_function = interceptor.out_mock
-
         # recreate the project
-        self.assertEqual(interceptor.msg, None)
         rec.init("foo")
         self.assertEqual(os.path.join(self._dir, "foo"), os.getcwd())
         self.assertTrue(os.path.exists("articles"))
@@ -942,7 +926,6 @@ class TestKiroku(unittest.TestCase):
         self.assertTrue(os.path.exists(".js"))
         self.assertTrue(os.path.exists(".templates"))
         self.assertTrue(os.path.exists("config.ini.example"))
-        self.assertIn("`foo' exists", interceptor.msg)
 
 
 class TestFunctions(unittest.TestCase):
@@ -1084,35 +1067,6 @@ class TestTemplate(unittest.TestCase):
         # Now, get 'foo' template from cache, instead of reading it again
         self.assertEqual(tpl('foo'), "<span>foo</span>")
         self.assertEqual(len(tpl.templates), 3)
-
-
-class TestFeedback(unittest.TestCase):
-    """Test Feedback class"""
-    def test(self):
-        """Test Feedback behaviour"""
-
-        class Interceptor:
-            """simple class just to takeover the message"""
-            msg = None
-
-        def output_function(self, msg):
-            """Store the message in the Interceptor class object"""
-            Interceptor.msg = msg
-
-        feedback = kiroku.Feedback("msg")
-        self.assertEqual(kiroku.Feedback.output_function, None)
-        self.assertEqual(feedback.output_function, None)
-        self.assertEqual(Interceptor.msg, None)
-
-        kiroku.Feedback.output_function = output_function
-
-        feedback = kiroku.Feedback("msg")
-        self.assertEqual(kiroku.Feedback.output_function, output_function)
-        self.assertNotEqual(feedback.output_function, output_function)
-        self.assertEqual(Interceptor.msg, "msg")
-
-        kiroku.Feedback.output_function = None
-
 
 
 if __name__ == '__main__':
