@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Template - simple template mechanism for kiroku
 """

@@ -3,7 +3,7 @@ Kiroku - Manage and create static website.
 
 See README for details
 """
-from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
 from collections import defaultdict
 from configparser import SafeConfigParser
 import gettext
@@ -470,10 +470,7 @@ class Kiroku:
 
         shutil.copytree(os.path.join(DATA_DIR, "articles"), "articles")
         shutil.copytree(os.path.join(DATA_DIR, "css"), ".css")
-
-        os.mkdir(".js")
-        shutil.copy(os.path.join(DATA_DIR, "js", "jquery.min.js"), ".js/")
-        shutil.copy(os.path.join(DATA_DIR, "js", "search.min.js"), ".js/")
+        shutil.copytree(os.path.join(DATA_DIR, "js"), ".js/")
 
         shutil.copytree(os.path.join(DATA_DIR, "templates"), ".templates")
         shutil.copy(os.path.join(DATA_DIR, "config.ini.example"), ".")
@@ -501,6 +498,9 @@ def parse_commandline(args=None):
     build_cmd.set_defaults(func=build)
 
     arguments = parser.parse_args(args)
+    if arguments == Namespace():  # empty namespace is not what's expected
+        parser.print_help()
+        sys.exit(2)
 
     return arguments
 
