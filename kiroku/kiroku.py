@@ -524,14 +524,15 @@ def get_config():
         locale.setlocale(locale.LC_ALL, config['locale'])
         language = config['locale']
     else:
-        language = locale.getdefaultlocale()[0]
+        locale.setlocale(locale.LC_ALL, "")
+        language = ".".join(locale.getdefaultlocale())
 
     gettext.install(True, localedir=None)
     gettext.find(APP_NAME, LOCALE_DIR)
     gettext.textdomain(APP_NAME)
     gettext.bind_textdomain_codeset(APP_NAME, "UTF-8")
     lang = gettext.translation(APP_NAME, LOCALE_DIR,
-                               languages=language.split(".")[0],
+                               languages=[language],
                                fallback=True)
     config.update(get_i18n_strings(lang.gettext))
     return config
