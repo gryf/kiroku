@@ -58,6 +58,7 @@ class TestArticle(unittest.TestCase):
         """Assumption is, that all operations are performed in current
         directory with hardcoded article directory"""
         self._config = deepcopy(kiroku.CONFIG)
+        kiroku.CONFIG['locale'] = 'C'
         kiroku.CONFIG.update(kiroku.get_i18n_strings(gettext))
         self._curdir = os.path.abspath(os.curdir)
         self._dir = mkdtemp()

@@ -34,7 +34,7 @@ CONFIG = {'server_name': "localhost",
           'site_name': "Kiroku",
           'site_desc': "Yet another blog",
           'site_footer': "The footer",
-          'locale': "C"}
+          'locale': ""}
 
 
 def get_i18n_strings(_):
@@ -520,13 +520,18 @@ def get_config():
     if not config['server_root'].endswith("/"):
         config['server_root'] = config['server_root'] + "/"
 
-    locale.setlocale(locale.LC_ALL, config['locale'])
+    if config['locale']:
+        locale.setlocale(locale.LC_ALL, config['locale'])
+        language = config['locale']
+    else:
+        language = locale.getdefaultlocale()[0]
+
     gettext.install(True, localedir=None)
     gettext.find(APP_NAME, LOCALE_DIR)
     gettext.textdomain(APP_NAME)
     gettext.bind_textdomain_codeset(APP_NAME, "UTF-8")
     lang = gettext.translation(APP_NAME, LOCALE_DIR,
-                               languages=[config['locale']],
+                               languages=language.split(".")[0],
                                fallback=True)
     config.update(get_i18n_strings(lang.gettext))
     return config

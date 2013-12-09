@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
 Tests for tzinfo naive implementation
+TODO: Make this module pytz[1] compatible
 
+[1] http://pytz.sourceforge.net/
 """
 
 from datetime import datetime
 import unittest
-import locale
 
 from kiroku.naive_tzinfo import CETimeZone, get_rfc3339, get_rfc822
 
@@ -94,16 +95,10 @@ class TestCETimeZone(unittest.TestCase):
 
     def test_get_rfc822(self):
         """test get_rfc822 method for CET/CEST"""
-        locale.setlocale(locale.LC_ALL, 'C')
         date_ = datetime.strptime("2010-01-28 20:20:00", "%Y-%m-%d %H:%M:%S")
         self.assertEqual(get_rfc822(date_), "Thu, 28 Jan 2010 20:20:00 +0100")
         date_ = datetime.strptime("2010-06-29 20:20:00", "%Y-%m-%d %H:%M:%S")
         self.assertEqual(get_rfc822(date_), "Tue, 29 Jun 2010 20:20:00 +0200")
-        locale.setlocale(locale.LC_ALL, 'pl_PL')
-        date_ = datetime.strptime("2010-01-28 20:20:00", "%Y-%m-%d %H:%M:%S")
-        self.assertEqual(get_rfc822(date_), "czw, 28 sty 2010 20:20:00 +0100")
-        date_ = datetime.strptime("2010-06-29 20:20:00", "%Y-%m-%d %H:%M:%S")
-        self.assertEqual(get_rfc822(date_), "wto, 29 cze 2010 20:20:00 +0200")
 
 if __name__ == '__main__':
     unittest.main()
