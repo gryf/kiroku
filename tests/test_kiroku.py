@@ -101,7 +101,7 @@ class TestKiroku(unittest.TestCase):
         with open(".templates/headline.html", "w") as fobj:
             fobj.write("<p>%(title)s</p>")
         with open(".templates/article_tag.html", "w") as fobj:
-            fobj.write("<p>%(tag)s</p>")
+            fobj.write("<a url='%(server_root)s%(tag_url)s'><p>%(tag)s</p></a>")
         with open(".templates/tag.html", "w") as fobj:
             fobj.write("%(size)d\n%(tag)s\ntag_%(tag_url)s\n%(count)d")
         with open(".templates/article_short.html", "w") as fobj:
@@ -493,6 +493,17 @@ class TestKiroku(unittest.TestCase):
         rec.build()
         self.assertTrue(os.path.exists("build/something_else"))
         self.assertTrue(os.path.exists("build/afile.txt"))
+
+    def test__join_tags(self):
+        """Test _join_tags method"""
+        rec = kiroku.Kiroku(kiroku.CONFIG)
+
+        tags = []
+        self.assertEqual(rec._join_tags(tags), '')
+
+        tags = ['z', 'ź']
+        self.assertEqual(rec._join_tags(tags),
+                         "<a url='/z'><p>z</p></a>, <a url='/z'><p>ź</p></a>")
 
     def test_update(self):
         """Dummy placeholder for update method"""

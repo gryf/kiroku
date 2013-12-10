@@ -157,15 +157,8 @@ class Kiroku:
         with open(os.path.join("build", "rss.xml"), "w") as fobj:
             fobj.write(rss.get())
 
-    def _parse_tags(self, tags):
-        """
-        Parse tags and return them as string.
-
-        @param tags: list of article tags
-
-        @return: tags comma separated as str
-
-        """
+    def _join_tags(self, tags):
+        """Parse tags and return them as string of tags separated with comma"""
         article_tag = self._templ("article_tag")
         data = [article_tag % {'tag_url': tag_.translate(TR_TABLE),
                                'tag': tag_,
@@ -191,7 +184,7 @@ class Kiroku:
                  "w": {}}  # word list
         _ids = []
         for art in self.articles:
-            art_tags = self._parse_tags(art.tags)
+            art_tags = self._join_tags(art.tags)
             data = {"article_url": art.html_fname,
                     "title": art.title,
                     "datetime": art.created_rfc3339(),
@@ -229,7 +222,7 @@ class Kiroku:
         for tag in tags:
             titles = []
             for art in tags[tag]:
-                art_tags = self._parse_tags(art.tags)
+                art_tags = self._join_tags(art.tags)
                 data = {"article_url": art.html_fname,
                         "title": art.title,
                         "datetime": art.created_rfc3339(),
@@ -262,7 +255,7 @@ class Kiroku:
         titles = []
         for art in self.articles[:5]:
             short_body = art.body.split("<!-- more -->")[0]
-            art_tags = self._parse_tags(art.tags)
+            art_tags = self._join_tags(art.tags)
             data = {"article_url": art.html_fname,
                     "title": art.title,
                     "datetime": art.created_rfc3339(),
@@ -294,7 +287,7 @@ class Kiroku:
 
         titles = []
         for art in self.articles[5:]:
-            art_tags = self._parse_tags(art.tags)
+            art_tags = self._join_tags(art.tags)
             data = {"article_url": art.html_fname,
                     "title": art.title,
                     "datetime": art.created_rfc3339(),
@@ -325,7 +318,7 @@ class Kiroku:
         article_header = self._templ("article_header")
         article_footer = self._templ("article_footer")
         for art in self.articles:
-            art_tags = self._parse_tags(art.tags)
+            art_tags = self._join_tags(art.tags)
             header = article_header % {"title": art.title,
                                        "datetime": art.created_rfc3339(),
                                        "human_date": art.created_short()}
