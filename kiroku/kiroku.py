@@ -3,7 +3,7 @@ Kiroku - Manage and create static website.
 
 See README for details
 """
-from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
 from collections import defaultdict
 from configparser import SafeConfigParser
 import gettext
@@ -34,7 +34,7 @@ CONFIG = {'server_name': "localhost",
           'site_name': "Kiroku",
           'site_desc': "Yet another blog",
           'site_footer': "The footer",
-          'locale': "C"}
+          'locale': ""}
 
 
 def get_i18n_strings(_):
@@ -459,10 +459,7 @@ class Kiroku:
 
         shutil.copytree(os.path.join(DATA_DIR, "articles"), "articles")
         shutil.copytree(os.path.join(DATA_DIR, "css"), ".css")
-
-        os.mkdir(".js")
-        shutil.copy(os.path.join(DATA_DIR, "js", "jquery.min.js"), ".js/")
-        shutil.copy(os.path.join(DATA_DIR, "js", "search.min.js"), ".js/")
+        shutil.copytree(os.path.join(DATA_DIR, "js"), ".js/")
 
         shutil.copytree(os.path.join(DATA_DIR, "templates"), ".templates")
         shutil.copy(os.path.join(DATA_DIR, "config.ini.example"), ".")
@@ -490,6 +487,9 @@ def parse_commandline(args=None):
     build_cmd.set_defaults(func=build)
 
     arguments = parser.parse_args(args)
+    if arguments == Namespace():  # empty namespace is not what's expected
+        parser.print_help()
+        sys.exit(2)
 
     return arguments
 
@@ -509,13 +509,19 @@ def get_config():
     if not config['server_root'].endswith("/"):
         config['server_root'] = config['server_root'] + "/"
 
-    locale.setlocale(locale.LC_ALL, config['locale'])
+    if config['locale']:
+        locale.setlocale(locale.LC_ALL, config['locale'])
+        language = config['locale']
+    else:
+        locale.setlocale(locale.LC_ALL, "")
+        language = ".".join(locale.getdefaultlocale())
+
     gettext.install(True, localedir=None)
     gettext.find(APP_NAME, LOCALE_DIR)
     gettext.textdomain(APP_NAME)
     gettext.bind_textdomain_codeset(APP_NAME, "UTF-8")
     lang = gettext.translation(APP_NAME, LOCALE_DIR,
-                               languages=[config['locale']],
+                               languages=[language],
                                fallback=True)
     config.update(get_i18n_strings(lang.gettext))
     return config
