@@ -157,12 +157,20 @@ class Kiroku:
         with open(os.path.join("build", "rss.xml"), "w") as fobj:
             fobj.write(rss.get())
 
+    def _join_tags(self, tags):
+        """Parse tags and return them as string of tags separated with comma"""
+        article_tag = self._templ("article_tag")
+        data = [article_tag % {'tag_url': tag_.translate(TR_TABLE),
+                               'tag': tag_,
+                               'server_root': self._cfg['server_root']}
+                for tag_ in tags]
+        return ', '.join(data)
+
     def _create_json_data(self):
         """Create data utilized on the client side - that includes search
         data, articles metadata (titles, links, tags dates and so on),
         template for the search output, etc"""
         print("Writing json data files…")
-        article_tag = self._templ("article_tag")
         headline = self._templ("headline")
         with open(os.path.join("build", "templates.json"), "w") as fobj:
             json.dump({"w": "<h1>%(i18n_search_progress)s</h1>" % self._cfg,
@@ -176,11 +184,7 @@ class Kiroku:
                  "w": {}}  # word list
         _ids = []
         for art in self.articles:
-            data = [article_tag % {"tag_url": tag_.translate(TR_TABLE),
-                                   "tag": tag_,
-                                   'server_root': self._cfg['server_root']}
-                    for tag_ in art.tags]
-            art_tags = ", ".join(data)
+            art_tags = self._join_tags(art.tags)
             data = {"article_url": art.html_fname,
                     "title": art.title,
                     "datetime": art.created_rfc3339(),
@@ -208,7 +212,6 @@ class Kiroku:
         print("Creating tag pages…")
         main = self._templ("main")
         header = self._templ("header")
-        article_tag = self._templ("article_tag")
         headline = self._templ("headline")
 
         tags = defaultdict(list)
@@ -219,12 +222,7 @@ class Kiroku:
         for tag in tags:
             titles = []
             for art in tags[tag]:
-                data = [article_tag % {"tag_url": tag_.translate(TR_TABLE),
-                                       "tag": tag_,
-                                       "server_root": self._cfg["server_root"]}
-                        for tag_ in art.tags]
-
-                art_tags = ", ".join(data)
+                art_tags = self._join_tags(art.tags)
                 data = {"article_url": art.html_fname,
                         "title": art.title,
                         "datetime": art.created_rfc3339(),
@@ -252,17 +250,12 @@ class Kiroku:
         """Create index.html for the main site entry"""
         print("Creating `index.html'…")
         main = self._templ("main")
-        article_tag = self._templ("article_tag")
         article_short = self._templ("article_short")
 
         titles = []
         for art in self.articles[:5]:
             short_body = art.body.split("<!-- more -->")[0]
-            data = [article_tag % {"tag_url": tag_.translate(TR_TABLE),
-                                   "tag": tag_,
-                                   "server_root": self._cfg["server_root"]}
-                    for tag_ in art.tags]
-            art_tags = ", ".join(data)
+            art_tags = self._join_tags(art.tags)
             data = {"article_url": art.html_fname,
                     "title": art.title,
                     "datetime": art.created_rfc3339(),
@@ -290,16 +283,11 @@ class Kiroku:
         print("Create archive page…")
         main = self._templ("main")
         header = self._templ("header")
-        article_tag = self._templ("article_tag")
         headline = self._templ("headline")
 
         titles = []
         for art in self.articles[5:]:
-            data = [article_tag % {"tag_url": tag_.translate(TR_TABLE),
-                                   "tag": tag_,
-                                   "server_root": self._cfg["server_root"]}
-                    for tag_ in art.tags]
-            art_tags = ", ".join(data)
+            art_tags = self._join_tags(art.tags)
             data = {"article_url": art.html_fname,
                     "title": art.title,
                     "datetime": art.created_rfc3339(),
@@ -329,14 +317,8 @@ class Kiroku:
         main = self._templ("main")
         article_header = self._templ("article_header")
         article_footer = self._templ("article_footer")
-        article_tag = self._templ("article_tag")
         for art in self.articles:
-            data = [article_tag % {"tag_url": tag_.translate(TR_TABLE),
-                                   "tag": tag_,
-                                   "server_root": self._cfg["server_root"]}
-                    for tag_ in art.tags]
-            art_tags = ", ".join(data)
-
+            art_tags = self._join_tags(art.tags)
             header = article_header % {"title": art.title,
                                        "datetime": art.created_rfc3339(),
                                        "human_date": art.created_short()}
