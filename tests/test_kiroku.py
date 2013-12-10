@@ -13,6 +13,7 @@ import os
 import shutil
 import time
 import unittest
+import locale
 
 from kiroku import kiroku
 
@@ -127,6 +128,9 @@ class TestKiroku(unittest.TestCase):
         os.chdir(self._curdir)
         rmtree(self._dir)
         kiroku.CONFIG = deepcopy(self._config)
+        # reset locale to C, since build() and _rss() methods reset locale
+        # to those which are available on the system side.
+        locale.setlocale(locale.LC_ALL, "C")
 
     def test_initialization(self):
         """Test initialization of Kiroku object"""
@@ -392,7 +396,7 @@ class TestKiroku(unittest.TestCase):
             rec.articles.append(art)
 
         rec._save()
-        self.assertEqual(os.listdir("build"), ['l2', 'l1', 'l0'])
+        self.assertEqual(sorted(os.listdir("build")), ['l0', 'l1', 'l2'])
 
     def test__tag_pages(self):
         """Test _tag_pages method"""
@@ -568,6 +572,7 @@ class TestFunctions(unittest.TestCase):
         self._dir = mkdtemp()
         os.chdir(self._dir)
 
+        self._config = deepcopy(kiroku.CONFIG)
         self._kiroku = kiroku.Kiroku
         kiroku.Kiroku = MockKiroku
 
@@ -576,6 +581,7 @@ class TestFunctions(unittest.TestCase):
         kiroku.Kiroku = self._kiroku
         os.chdir(self._curdir)
         rmtree(self._dir)
+        kiroku.CONFIG = deepcopy(self._config)
 
     def test_build(self):
         """Test build funtion"""
@@ -595,13 +601,12 @@ class TestFunctions(unittest.TestCase):
 
     def test_get_config(self):
         """Test get_config function"""
-        old_config = deepcopy(kiroku.CONFIG)
 
         # check defaults
         conf = kiroku.get_config()
 
         self.assertEqual(len(conf), 22)
-        self.assertEqual(conf['locale'], 'C')
+        self.assertEqual(conf['locale'], '')
         self.assertEqual(conf['server_name'], 'localhost')
         self.assertEqual(conf['server_protocol'], 'http')
         self.assertEqual(conf['server_root'], '/')
@@ -609,9 +614,16 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(conf['site_footer'], 'The footer')
         self.assertEqual(conf['site_name'], 'Kiroku')
 
+        if not locale.getdefaultlocale()[0]:
+            # no locale settings found, there is no point for trying to
+            # proceed, since blindly setting some unknown locale will just
+            # throw an exception
+            return
+
+        cur_locale = ".".join(locale.getdefaultlocale())
         with open("config.ini", "w") as fobj:
             fobj.write("[kiroku]\n")
-            fobj.write("locale = en_US\n")
+            fobj.write("locale = %s\n" % cur_locale)
             fobj.write("server_name = foo.com\n")
             fobj.write("server_protocol = https\n")
             fobj.write("server_root = bar\n")
@@ -619,19 +631,17 @@ class TestFunctions(unittest.TestCase):
             fobj.write("site_footer = foo-ter\n")
             fobj.write("site_name = Custom Name\n")
 
-        kiroku.CONFIG = deepcopy(old_config)
+        kiroku.CONFIG = deepcopy(self._config)
 
         conf = kiroku.get_config()
         self.assertEqual(len(conf), 22)
-        self.assertEqual(conf['locale'], 'en_US')
+        self.assertEqual(conf['locale'], cur_locale)
         self.assertEqual(conf['server_name'], 'foo.com')
         self.assertEqual(conf['server_protocol'], 'https')
         self.assertEqual(conf['server_root'], '/bar/')
         self.assertEqual(conf['site_desc'], 'la dee da')
         self.assertEqual(conf['site_footer'], 'foo-ter')
         self.assertEqual(conf['site_name'], 'Custom Name')
-
-        kiroku.CONFIG = deepcopy(old_config)
 
     def test_parse_commandline(self):
         """Test parse_commandline function"""

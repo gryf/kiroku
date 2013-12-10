@@ -123,11 +123,16 @@ class GenerateMo(Command):
 
 class TestRunner(Command):
     """Run the test suite with optional coverage report"""
-    user_options = []
+    user_options = [("verbose", "v", "Don't suppress the output of the "
+                     "modules. Usefeull in debugging, overwrites default "
+                     "command behaviour (off by default)."),
+                    ("coverage", "c", "Report coverage for the tests")]
     description = __doc__
 
     def initialize_options(self):
-        """Has to beimplemented; not needed though"""
+        """Initialize test options"""
+        self.verbose = False
+        self.coverage = False
 
     def finalize_options(self):
         """Has to beimplemented; not needed though"""
@@ -161,14 +166,20 @@ class TestRunner(Command):
 
         try:
             shutil.copytree(os.path.join(_curdir, "kiroku"), "kiroku")
-            if coverage:
+
+            if self.coverage:
                 cov = coverage.coverage()
                 cov.start()
+
             loader = TestLoader()
             suite = loader.discover(os.path.join(_curdir, "tests"),
                                     pattern="test_*")
-            TextTestRunner(buffer=True).run(suite)
-            if coverage:
+            if self.verbose:
+                TextTestRunner().run(suite)
+            else:
+                TextTestRunner(buffer=True).run(suite)
+
+            if self.coverage:
                 cov.stop()
                 cov.report(include=["*/kiroku/*.py"], omit=["*test_*"])
         finally:
@@ -224,4 +235,6 @@ setup(name="kiroku",
                 'genpot': GeneratePot,
                 'minify': MinifyJavaScript,
                 'sdist': CustomSdist,
-                'test': TestRunner})
+                'test': TestRunner},
+      options={'test': {'verbose': False,
+                        'coverage': False}})

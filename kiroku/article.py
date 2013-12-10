@@ -27,8 +27,7 @@ class Article:
 
     def read(self):
         """Read article and transform to html"""
-        html, attrs = self._transfrom_to_html()
-        self.body = html
+        self.body, attrs = self._transfrom_to_html()
         self._process_attrs(attrs)
         self._set_html_name()
 

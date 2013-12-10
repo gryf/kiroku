@@ -292,6 +292,12 @@ Note, that during build, message catalogs will (try to) be regenerated,
 otherwise the interface will be in English by default, regardless of the
 language in the config.
 
+``test`` command may have two additional parameters:
+
+- ``--verbose`` or ``-v`` - will turn on all of the messages printed out by the
+  modules. This could be useful for debugging with ``pdb``.
+- ``--coverage`` or ``-c`` - will measure and print out the code coverage
+
 Every command should be executed in the root directory of the kiroku package
 (the directory where ``setup.py`` exists).
 
@@ -304,13 +310,13 @@ This software is licensed under Simplified BSD License::
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions are met: 
+    modification, are permitted provided that the following conditions are met:
 
     1. Redistributions of source code must retain the above copyright notice, this
-       list of conditions and the following disclaimer. 
+       list of conditions and the following disclaimer.
     2. Redistributions in binary form must reproduce the above copyright notice,
        this list of conditions and the following disclaimer in the documentation
-       and/or other materials provided with the distribution. 
+       and/or other materials provided with the distribution.
 
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
