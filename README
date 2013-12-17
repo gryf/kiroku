@@ -81,7 +81,7 @@ will be available:
   during build every file with extension ``.css`` will be minified.
 - ``.js`` - directory with JavaScript files. Will be copied to ``build/js``
   during build.
-- ``.templates`` - this directory contains all the templates that kiroku uses
+- ``.templates`` - this directory contains all the templates that Kiroku uses
   to build the pages.
 
 Now, just change the directory to ``blog`` and issue the command ``build`` to
@@ -298,8 +298,33 @@ language in the config.
   modules. This could be useful for debugging with ``pdb``.
 - ``--coverage`` or ``-c`` - will measure and print out the code coverage
 
-Every command should be executed in the root directory of the kiroku package
+Every command should be executed in the root directory of the Kiroku repository
 (the directory where ``setup.py`` exists).
+
+TODO
+----
+
+There is still much to do. Here is the list of things I'm planning to do:
+
+#. Module ``kiroku.naive_tzinfo`` should be expanded to support more timezones.
+
+   Timezones are needed because of the ``pubDate`` tag in RSS and ``datetime``
+   attribute in ``<time>`` HTML5 tags. To decrease dependencies I've decided to
+   implement a *naïve* implementation for timezone info object and for now
+   **only** for CET/CEST timezone. The goal is to make it `pytz`_ compatible, so
+   Kiroku can use it if available.
+
+#. Module for comments.
+
+   I'm not decided yet on the way to append comments system (if any). For sure
+   an obvious choice could be adapting the templates to utilize `disqus`_ or
+   similar commenting system, use some self-hosted solution (like `isso`_), or
+   even go with moderated (through the email) solutions, as described in `Matt
+   Palmer blogpost`_.
+
+#. Make the templates use some engine like `jinja`_ or `mako`_. Initially, I
+   have plan to do that, but eventually I've decided to keep Kiroku simple.
+   Maybe, if the interest will be big enough, I'll add it later.
 
 License
 -------
@@ -341,3 +366,9 @@ This software is licensed under Simplified BSD License::
 .. _paver: http://paver.github.io/paver/
 .. _pep8: http://pep8.readthedocs.org/
 .. _pylint: http://www.logilab.org/project/pylint
+.. _pytz: http://pytz.sourceforge.net
+.. _disqus: http://www.disqus.com
+.. _isso: http://posativ.org/isso/
+.. _Matt Palmer blogpost: http://www.hezmatt.org/~mpalmer/blog/2011/07/19/static-comments-in-jekyll.html
+.. _jinja: http://jinja.pocoo.org
+.. _mako: http://www.makotemplates.org

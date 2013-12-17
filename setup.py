@@ -69,6 +69,9 @@ class MinifyJavaScript(Command):
                 if minified:
                     with open(new_name, "w") as fobj:
                         fobj.write(minified)
+                    # append minified file path without leading 'kiroku/'
+                    new_name = new_name[7:]
+                    self.distribution.package_data['kiroku'].append(new_name)
 
 
 class GeneratePot(Command):
@@ -193,6 +196,7 @@ class CustomBuild(build.build):
     def run(self):
         """Modify build process"""
         GenerateMo(self.distribution).run()
+        MinifyJavaScript(self.distribution).run()
         super().run()
         shutil.copyfile("README", os.path.join(self.build_lib,
                                                self.distribution.packages[0],
@@ -204,6 +208,7 @@ class CustomSdist(sdist.sdist):
 
     def run(self):
         GenerateMo(self.distribution).run()
+        MinifyJavaScript(self.distribution).run()
         super().run()
 
 

@@ -177,7 +177,7 @@ class Kiroku:
                        "r": "<h1>%(i18n_search_results)s</h1>" % self._cfg,
                        "t":  self._cfg["i18n_search_results_ttile"] +
                        " - " + self._cfg["site_name"],
-                       "n": "<h1>%(i18n_search_results)s</h1>" % self._cfg},
+                       "n": "<h1>%(i18n_search_not_found)s</h1>" % self._cfg},
                       fobj, ensure_ascii=False)
 
         words = {"a": [],  # article data
@@ -409,19 +409,19 @@ class Kiroku:
 
         self.tag_cloud = {}
 
-        tag_wieght = {}
+        tag_weight = {}
         biggest = 0
 
         for tag in self.tags:
-            tag_wieght[tag] = len(self.tags[tag])
-            biggest = tag_wieght[tag] if tag_wieght[tag] > biggest else biggest
+            tag_weight[tag] = len(self.tags[tag])
+            biggest = tag_weight[tag] if tag_weight[tag] > biggest else biggest
 
         low = 1
         high = 9
 
         for tag in self.tags:
             if log(biggest):
-                size = (log(tag_wieght[tag]) /
+                size = (log(tag_weight[tag]) /
                         log(biggest)) * (high - low) + low
             else:
                 size = 9
@@ -432,7 +432,7 @@ class Kiroku:
             data = {"size": self.tag_cloud[key],
                     "tag": key,
                     "tag_url": key.translate(TR_TABLE),
-                    "count": tag_wieght[key]}
+                    "count": tag_weight[key]}
             data.update(self._cfg)
             tag_cloud.append(tag_tmpl % data)
 

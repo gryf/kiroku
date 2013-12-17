@@ -111,13 +111,15 @@ input[type="search"]::-webkit-search-cancel-button {
     font-size: 0.8em;
 }
 
-/* Pygments highlighting classes */
+.code, .literal-block {
+    overflow-x: auto
+}
 
+/* Pygments highlighting classes */
 .code {
     padding: 0;
     margin: 0;
     background-color: #242424;
-    overflow-x: auto
 }
 
 .code pre {
