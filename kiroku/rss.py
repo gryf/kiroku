@@ -11,7 +11,6 @@ class Rss:
         """Initialize RSS container"""
         self.items = []
         self._templ = Template(cfg)
-        self._cfg = cfg
 
     def add(self, item):
         """Add rss item to the list. Parameter item is a dictionary which
