@@ -57,7 +57,7 @@ def get_i18n_strings(_):
             "i18n_subscribe_desc": _("Subscribe via RSS")}
 
 
-def build(_, cfg):
+def build(unused, cfg):
     """Build the site"""
     kiroku = Kiroku(cfg)
     return kiroku.build()
