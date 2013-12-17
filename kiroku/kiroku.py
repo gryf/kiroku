@@ -57,7 +57,7 @@ def get_i18n_strings(_):
             "i18n_subscribe_desc": _("Subscribe via RSS")}
 
 
-def build(unused, cfg):
+def build(_, cfg):
     """Build the site"""
     kiroku = Kiroku(cfg)
     return kiroku.build()
@@ -93,14 +93,14 @@ class Kiroku:
     blog/portal/website correctly.
     """
 
-    def __init__(self, cfg):
+    def __init__(self, config):
         self._about_fname = None
         self._sorted_articles = []
-        self._cfg = cfg
+        self._cfg = config
         self.articles = []
         self.tag_cloud = None
         self.tags = defaultdict(list)
-        self._templ = Template()
+        self._templ = Template(config)
 
     def build(self):
         """Convert articles against the template to build directory"""
@@ -159,10 +159,9 @@ class Kiroku:
 
     def _join_tags(self, tags):
         """Parse tags and return them as string of tags separated with comma"""
-        article_tag = self._templ("article_tag")
-        data = [article_tag % {'tag_url': tag_.translate(TR_TABLE),
-                               'tag': tag_,
-                               'server_root': self._cfg['server_root']}
+        data = [self._templ("article_tag",
+                            {'tag_url': tag_.translate(TR_TABLE),
+                             'tag': tag_})
                 for tag_ in tags]
         return ', '.join(data)
 
@@ -171,7 +170,6 @@ class Kiroku:
         data, articles metadata (titles, links, tags dates and so on),
         template for the search output, etc"""
         print("Writing json data files…")
-        headline = self._templ("headline")
         with open(os.path.join("build", "templates.json"), "w") as fobj:
             json.dump({"w": "<h1>%(i18n_search_progress)s</h1>" % self._cfg,
                        "r": "<h1>%(i18n_search_results)s</h1>" % self._cfg,
@@ -185,14 +183,13 @@ class Kiroku:
         _ids = []
         for art in self.articles:
             art_tags = self._join_tags(art.tags)
-            data = {"article_url": art.html_fname,
-                    "title": art.title,
-                    "datetime": art.created_rfc3339(),
-                    "human_date": art.created_short(),
-                    "tags": art_tags}
-            data.update(self._cfg)
 
-            words['a'].append(headline % data)
+            words['a'].append(self._templ("headline",
+                                          {"article_url": art.html_fname,
+                                           "title": art.title,
+                                           "datetime": art.created_rfc3339(),
+                                           "human_date": art.created_short(),
+                                           "tags": art_tags}))
 
             _ids.append(art.html_fname)
             idx = _ids.index(art.html_fname)
@@ -210,9 +207,6 @@ class Kiroku:
     def _tag_pages(self):
         """Create pages for the tag links"""
         print("Creating tag pages…")
-        main = self._templ("main")
-        header = self._templ("header")
-        headline = self._templ("headline")
 
         tags = defaultdict(list)
         for art in self.articles:
@@ -223,124 +217,112 @@ class Kiroku:
             titles = []
             for art in tags[tag]:
                 art_tags = self._join_tags(art.tags)
-                data = {"article_url": art.html_fname,
-                        "title": art.title,
-                        "datetime": art.created_rfc3339(),
-                        "human_date": art.created_short(),
-                        "tags": art_tags}
-                data.update(self._cfg)
-                titles.append(headline % data)
+                titles.append(self._templ("headline",
+                                          {"article_url": art.html_fname,
+                                           "title": art.title,
+                                           "datetime": art.created_rfc3339(),
+                                           "human_date": art.created_short(),
+                                           "tags": art_tags}))
 
             title = self._cfg['i18n_art_tags'] % tag
-            data = {"title": title + " - ",
-                    "header": header % {"title": title},
-                    "body": " ".join(titles),
-                    "class_index": "current",
-                    "class_arch": "",
-                    "class_about": "",
-                    "tag_cloud": self.tag_cloud}
-            data.update(self._cfg)
-            data["footer"] = ""
 
             with open(os.path.join("build", "tag-%s.html" %
                                    tag.translate(TR_TABLE)), "w") as fobj:
-                fobj.write(main % data)
+
+                fobj.write(self._templ("main",
+                                       {"title": title + " - ",
+                                        "header": self._templ("header",
+                                                              {"title": title}),
+                                        "body": " ".join(titles),
+                                        "class_index": "current",
+                                        "class_arch": "",
+                                        "class_about": "",
+                                        "footer": "",
+                                        "tag_cloud": self.tag_cloud}))
 
     def _index(self):
         """Create index.html for the main site entry"""
         print("Creating `index.html'…")
-        main = self._templ("main")
-        article_short = self._templ("article_short")
 
         titles = []
         for art in self.articles[:5]:
             short_body = art.body.split("<!-- more -->")[0]
             art_tags = self._join_tags(art.tags)
-            data = {"article_url": art.html_fname,
-                    "title": art.title,
-                    "datetime": art.created_rfc3339(),
-                    "human_date": art.created_short(),
-                    "short_body": short_body,
-                    "tags": art_tags}
-            data.update(self._cfg)
-            titles.append(article_short % data)
 
-        data = {"title": "",
-                "header": "",
-                "body": " ".join(titles),
-                "class_index": "current",
-                "class_arch": "",
-                "class_about": "",
-                "tag_cloud": self.tag_cloud}
-        data.update(self._cfg)
-        data['footer'] = ""
+            titles.append(self._templ("article_short",
+                                      {"article_url": art.html_fname,
+                                       "title": art.title,
+                                       "datetime": art.created_rfc3339(),
+                                       "human_date": art.created_short(),
+                                       "short_body": short_body,
+                                       "tags": art_tags}))
 
         with open(os.path.join("build", "index.html"), "w") as fobj:
-            fobj.write(main % data)
+            fobj.write(self._templ("main",
+                                   {"title": "",
+                                    "header": "",
+                                    "body": " ".join(titles),
+                                    "class_index": "current",
+                                    "class_arch": "",
+                                    "class_about": "",
+                                    "footer": "",
+                                    "tag_cloud": self.tag_cloud}))
 
     def _archive(self):
         """Create atchive.html for the site"""
         print("Create archive page…")
-        main = self._templ("main")
-        header = self._templ("header")
-        headline = self._templ("headline")
 
         titles = []
         for art in self.articles[5:]:
             art_tags = self._join_tags(art.tags)
-            data = {"article_url": art.html_fname,
-                    "title": art.title,
-                    "datetime": art.created_rfc3339(),
-                    "human_date": art.created_short(),
-                    "tags": art_tags}
-            data.update(self._cfg)
-            titles.append(headline % data)
+            titles.append(self._templ("headline",
+                                      {"article_url": art.html_fname,
+                                       "title": art.title,
+                                       "datetime": art.created_rfc3339(),
+                                       "human_date": art.created_short(),
+                                       "tags": art_tags}))
+
         title = self._cfg['i18n_archives']
-        data = {"title": title + " - ",
-                "header": header % {"title": title},
-                "body": " ".join(titles),
-                "class_index": "",
-                "class_arch": "current",
-                "class_about": "",
-                "tag_cloud": self.tag_cloud}
-        data.update(self._cfg)
-        data['footer'] = ""
 
         with open(os.path.join("build", "archives.html"), "w") as fobj:
-            fobj.write(main % data)
+            fobj.write(self._templ("main",
+                                   {"title": title + " - ",
+                                    "header": self._templ("header",
+                                                          {"title": title}),
+                                    "body": " ".join(titles),
+                                    "class_index": "",
+                                    "class_arch": "current",
+                                    "class_about": "",
+                                    "footer": "",
+                                    "tag_cloud": self.tag_cloud}))
 
     def _save(self):
         """
         Save articles and other generated pages into html using the templates.
         """
         print("Saving articles…")
-        main = self._templ("main")
-        article_header = self._templ("article_header")
-        article_footer = self._templ("article_footer")
         for art in self.articles:
             art_tags = self._join_tags(art.tags)
-            header = article_header % {"title": art.title,
-                                       "datetime": art.created_rfc3339(),
-                                       "human_date": art.created_short()}
-            data = {'rfc_date': art.created_rfc3339(),
-                    "datetime": art.created_detailed(),
-                    "human_date": art.created_detailed(),
-                    "tags": art_tags}
-            data.update(self._cfg)
-            footer = article_footer % data
-
-            data = {"title": art.title + " - ",
-                    "header": header,
-                    "body": art.body,
-                    "class_index": "current",
-                    "class_arch": "",
-                    "class_about": "",
-                    "tag_cloud": self.tag_cloud}
-            data.update(self._cfg)
-            data["footer"] = footer
+            header = self._templ("article_header",
+                                 {"title": art.title,
+                                  "datetime": art.created_rfc3339(),
+                                  "human_date": art.created_short()})
+            footer = self._templ("article_footer",
+                                 {'rfc_date': art.created_rfc3339(),
+                                  "datetime": art.created_detailed(),
+                                  "human_date": art.created_detailed(),
+                                  "tags": art_tags})
 
             with open(os.path.join("build", art.html_fname), "w") as fobj:
-                fobj.write(main % data)
+                fobj.write(self._templ("main",
+                                       {"title": art.title + " - ",
+                                        "header": header,
+                                        "body": art.body,
+                                        "class_index": "current",
+                                        "class_arch": "",
+                                        "class_about": "",
+                                        "footer": footer,
+                                        "tag_cloud": self.tag_cloud}))
 
     def _walk(self):
         """Walk through the flat list of the articles and gather all of the
@@ -369,25 +351,22 @@ class Kiroku:
 
         print("Generating about page…")
 
-        main = self._templ("main")
-        header = self._templ("header")
-
         with open(self._about_fname) as fobj:
             html, dummy = BlogArticle(fobj.read()).publish()
 
         title = self._cfg["i18n_about"]
-        data = {"title": title + " - ",
-                "header": header % {"title": title},
-                "body": html,
-                "class_index": "",
-                "class_arch": "",
-                "class_about": "current",
-                "tag_cloud": self.tag_cloud}
-        data.update(self._cfg)
-        data["footer"] = ""
 
         with open(os.path.join("build", "about.html"), "w") as fobj:
-            fobj.write(main % data)
+            fobj.write(self._templ("main",
+                                   {"title": title + " - ",
+                                    "header": self._templ("header",
+                                                          {"title": title}),
+                                    "body": html,
+                                    "class_index": "",
+                                    "class_arch": "",
+                                    "class_about": "current",
+                                    "footer": "",
+                                    "tag_cloud": self.tag_cloud}))
 
     def _harvest(self, fname):
         """Gather all the necessary info for the article"""
@@ -404,8 +383,6 @@ class Kiroku:
         print("Calculating tag cloud…")
         if self.tag_cloud:
             return self.tag_cloud
-
-        tag_tmpl = self._templ("tag")
 
         self.tag_cloud = {}
 
@@ -429,12 +406,11 @@ class Kiroku:
 
         tag_cloud = []
         for key in sorted(self.tags):
-            data = {"size": self.tag_cloud[key],
-                    "tag": key,
-                    "tag_url": key.translate(TR_TABLE),
-                    "count": tag_weight[key]}
-            data.update(self._cfg)
-            tag_cloud.append(tag_tmpl % data)
+            tag_cloud.append(self._templ("tag",
+                                         {"size": self.tag_cloud[key],
+                                          "tag": key,
+                                          "tag_url": key.translate(TR_TABLE),
+                                          "count": tag_weight[key]}))
 
         self.tag_cloud = " ".join(tag_cloud)
 

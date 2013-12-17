@@ -5,18 +5,28 @@ import re
 
 
 class Template:
-    """Simple class for template storage"""
+    """Simple class for cooking up partials out of the templates."""
 
-    def __init__(self):
+    def __init__(self, config):
         """Initialize object"""
         self.templates = {}
+        self._cfg = config
 
-    def __call__(self, template_name):
-        """Get the template"""
+    def __call__(self, template_name, data):
+        """Return string, out of the provided template intrepolated by the
+        data and default strings from the config"""
         if template_name not in self.templates:
             self._read_template(template_name)
 
-        return self.templates[template_name]
+        return self._get_updated_template(self.templates[template_name], data)
+
+    def _get_updated_template(self, template, data):
+        """Return the template string interpolated by data and default strings
+        from config. Data from data argument will overwrite the defaults."""
+        _data = {}
+        _data.update(self._cfg)
+        data = _data.update(data)
+        return template % _data
 
     def _read_template(self, template_name):
         """

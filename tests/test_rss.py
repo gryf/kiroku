@@ -41,7 +41,7 @@ class TestRss(unittest.TestCase):
         """Test add method"""
         rss = rss_mod.Rss(kiroku.CONFIG)
         # pass wrong type - expected dict
-        self.assertRaises(AttributeError, rss.add, "foo")
+        self.assertRaises(ValueError, rss.add, "foo")
         # pass wrong argument - expected dict containing title, link, desc and
         # date keys.
         self.assertRaises(KeyError, rss.add, {"foo": "bar"})

@@ -10,7 +10,7 @@ class Rss:
     def __init__(self, cfg):
         """Initialize RSS container"""
         self.items = []
-        self._templ = Template()
+        self._templ = Template(cfg)
         self._cfg = cfg
 
     def add(self, item):
@@ -22,14 +22,8 @@ class Rss:
             desc - description/first paragraph of the article
             date - publish date in format "Sun, 29 Sep 2002 19:09:28 GMT"
         """
-        rss_item = self._templ("rss_item")
-        item.update(self._cfg)
-        self.items.append(rss_item % item)
+        self.items.append(self._templ("rss_item", item))
 
     def get(self):
         """Return RSS XML string"""
-        rss_main = self._templ("rss_main")
-
-        data = {"items": "\n".join(self.items)}
-        data.update(self._cfg)
-        return rss_main % data
+        return self._templ("rss_main", {"items": "\n".join(self.items)})
