@@ -24,10 +24,14 @@ I decided to keep that name.
 Requirements
 ------------
 
-Besides (obviously) Python 3, there is only one dependency - `docutils`_,
-however, if there'll be a lot of program listings to be published, then it may
-be a good idea to consider installing another one - `pygments`_, which
-*automagically* enables syntax highlight in code blocks.
+Besides (obviously) Python 3, there is only one dependency - `docutils`_.
+
+For proper date time representation, `pytz`_ module is highly recommended,
+unless you are lucky to live in the ``Europe/Warsaw`` or ``UTC`` time zones, or
+you simply don't care, and stick with local time represented in UTC format.
+
+Last possible dependency is `pygments`_, which *automagically* enables syntax
+highlight in code blocks.
 
 Installation
 ------------
@@ -229,6 +233,9 @@ Following options under ``[kiroku]`` section are available:
 - ``site_desc`` (default ``Yet another blog``) - description of the
   website/blog. By default only seen on the RSS description tag.
 - ``site_footer`` (default ``The footer``) - footer of the page.
+- ``timezone`` (default ``UTC``) - proper name of the time zone the dates should
+  be represent. Without `pytz`_ module, there is only ``Europe/Warsaw`` and
+  ``UTC`` time zones implemented.
 
 Besides configuration, there is possibility to influence the look of the page by
 simply adjusting the CSS file and the templates, which can be found under
@@ -312,7 +319,7 @@ There is still much to do. Here is the list of things I'm planning to do:
    attribute in ``<time>`` HTML5 tags. To decrease dependencies I've decided to
    implement a *naïve* implementation for timezone info object and for now
    **only** for CET/CEST timezone. The goal is to make it `pytz`_ compatible, so
-   Kiroku can use it if available.
+   Kiroku can use it if available. Done.
 
 #. Module for comments.
 

@@ -47,13 +47,13 @@ class Article:
 
     def created_rfc3339(self):
         """Return RFC 3339 formatted date"""
-        return get_rfc3339(self.created)
+        return get_rfc3339(self.created, self._cfg['timezone'])
 
     def created_rfc822(self):
         """Return RFC 822 formatted date"""
         # RFC 822 doesn't allow localized strings
         locale.setlocale(locale.LC_ALL, "C")
-        date = get_rfc822(self.created)
+        date = get_rfc822(self.created, self._cfg['timezone'])
         locale.setlocale(locale.LC_ALL, self._cfg["locale"])
         return date
 

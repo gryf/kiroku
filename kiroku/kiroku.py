@@ -34,7 +34,8 @@ CONFIG = {'server_name': "localhost",
           'site_name': "Kiroku",
           'site_desc': "Yet another blog",
           'site_footer': "The footer",
-          'locale': ""}
+          'locale': "",
+          'timezone': "UTC"}
 
 
 def get_i18n_strings(_):

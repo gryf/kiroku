@@ -196,7 +196,7 @@ class TestArticle(unittest.TestCase):
         art_fname = os.path.join('articles', "empty.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         art.read()
-        self.assertEqual(art.created_rfc3339(), "2010-10-10T11:10:10+0200")
+        self.assertEqual(art.created_rfc3339(), "2010-10-10T11:10:10+0000")
 
     def test_created_rfc822(self):
         """Test created_rfc822 method"""
@@ -204,7 +204,7 @@ class TestArticle(unittest.TestCase):
         art = article.Article(art_fname, kiroku.CONFIG)
         art.read()
         self.assertEqual(art.created_rfc822(),
-                         "Sun, 10 Oct 2010 11:10:10 +0200")
+                         "Sun, 10 Oct 2010 11:10:10 +0000")
 
     def test_created_detailed(self):
         """Test created_detailed method"""

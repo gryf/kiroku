@@ -374,10 +374,10 @@ class TestKiroku(unittest.TestCase):
 
         first_item = items[0]
         self.assertEqual(first_item.find('pubDate').text,
-                         'Mon, 11 Oct 2010 11:01:00 +0200')
+                         'Mon, 11 Oct 2010 11:01:00 +0000')
         last_item = items[-1]
         self.assertEqual(last_item.find('pubDate').text,
-                         'Tue, 19 Oct 2010 11:10:10 +0200')
+                         'Tue, 19 Oct 2010 11:10:10 +0000')
 
     def test__save(self):
         """Test _save method"""
@@ -616,7 +616,7 @@ class TestFunctions(unittest.TestCase):
         # check defaults
         conf = kiroku.get_config()
 
-        self.assertEqual(len(conf), 22)
+        self.assertEqual(len(conf), 23)
         self.assertEqual(conf['locale'], '')
         self.assertEqual(conf['server_name'], 'localhost')
         self.assertEqual(conf['server_protocol'], 'http')
@@ -624,6 +624,7 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(conf['site_desc'], 'Yet another blog')
         self.assertEqual(conf['site_footer'], 'The footer')
         self.assertEqual(conf['site_name'], 'Kiroku')
+        self.assertEqual(conf['timezone'], 'UTC')
 
         if not locale.getdefaultlocale()[0]:
             # no locale settings found, there is no point for trying to
@@ -641,11 +642,12 @@ class TestFunctions(unittest.TestCase):
             fobj.write("site_desc = la dee da\n")
             fobj.write("site_footer = foo-ter\n")
             fobj.write("site_name = Custom Name\n")
+            fobj.write("timezone = Europe/Warsaw\n")
 
         kiroku.CONFIG = deepcopy(self._config)
 
         conf = kiroku.get_config()
-        self.assertEqual(len(conf), 22)
+        self.assertEqual(len(conf), 23)
         self.assertEqual(conf['locale'], cur_locale)
         self.assertEqual(conf['server_name'], 'foo.com')
         self.assertEqual(conf['server_protocol'], 'https')
@@ -653,6 +655,7 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(conf['site_desc'], 'la dee da')
         self.assertEqual(conf['site_footer'], 'foo-ter')
         self.assertEqual(conf['site_name'], 'Custom Name')
+        self.assertEqual(conf['timezone'], 'Europe/Warsaw')
 
     def test_parse_commandline(self):
         """Test parse_commandline function"""
