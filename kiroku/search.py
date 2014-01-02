@@ -43,7 +43,7 @@ class MLStripper(HTMLParser):
                       'b': 2,
                       'i': 2}
         weight = weight_map.get(self.tag_stack[-1], 1)
-        data = re.sub("[^\w0-9]+", " ", data)
+        data = re.sub(r"[^\w0-9]+", " ", data)
         for word in data.split():
             self.words[word.lower()].append(weight)
 

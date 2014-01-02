@@ -6,7 +6,7 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: 0.8.0\n"
+"Project-Id-Version: 0.8.1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-11-26 21:10+0100\n"
 "PO-Revision-Date: 2013-11-26 21:11:41+0100\n"
@@ -17,63 +17,63 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: kiroku/kiroku.py:94
+#: kiroku/kiroku.py:43
 #, python-format
 msgid "Articles with tag: %s"
 msgstr "Artykuły z etykietą: %s"
 
-#: kiroku/kiroku.py:95
+#: kiroku/kiroku.py:44
 msgid "Tags"
 msgstr "Etykiety"
 
-#: kiroku/kiroku.py:96
+#: kiroku/kiroku.py:45
 msgid "About me"
 msgstr "O mnie"
 
-#: kiroku/kiroku.py:97
+#: kiroku/kiroku.py:46
 msgid "Archives"
 msgstr "Archiwum"
 
-#: kiroku/kiroku.py:98
+#: kiroku/kiroku.py:47
 msgid "Blog"
 msgstr "Blog"
 
-#: kiroku/kiroku.py:99
+#: kiroku/kiroku.py:48
 msgid "RSS feed"
 msgstr "Kanał RSS"
 
-#: kiroku/kiroku.py:100
+#: kiroku/kiroku.py:49
 msgid "Please, enable JavaScript in order to use searching feature."
 msgstr "By skorzystać z wyszukiwarki, proszę włączyć JavaScript."
 
-#: kiroku/kiroku.py:102
+#: kiroku/kiroku.py:51
 msgid "Search"
 msgstr "Szukaj"
 
-#: kiroku/kiroku.py:103
+#: kiroku/kiroku.py:52
 msgid "Search…"
 msgstr "Szukaj…"
 
-#: kiroku/kiroku.py:104
+#: kiroku/kiroku.py:53
 msgid "Search results"
 msgstr "Rezultaty wyszukiwania"
 
-#: kiroku/kiroku.py:105
+#: kiroku/kiroku.py:54
 msgid "Search in progress. Please wait."
 msgstr "Proszę czekać, trwa przeszukiwanie."
 
-#: kiroku/kiroku.py:106
+#: kiroku/kiroku.py:55
 msgid "Results for phrase \"{sp}\""
 msgstr "Rezultaty dla frazy \"{sp}\""
 
-#: kiroku/kiroku.py:107
+#: kiroku/kiroku.py:56
 msgid "No results for phrase \"{sp}\""
 msgstr "Nie znaleziono żadnych wpisów dla frazy \"{sp}\""
 
-#: kiroku/kiroku.py:108
+#: kiroku/kiroku.py:57
 msgid "Subscribe"
 msgstr "Subskrybuj"
 
-#: kiroku/kiroku.py:109
+#: kiroku/kiroku.py:58
 msgid "Subscribe via RSS"
 msgstr "Subskrybuj kanał RSS"

@@ -50,7 +50,8 @@ class TestTemplate(unittest.TestCase):
         self.assertEqual(len(tpl.templates), 1)
         self.assertEqual(tpl.templates['foo'], "<span>foo</span>")
 
-        self.assertEqual(tpl('bar', {}), '<?xml version="1.0"?>\n<bar>bar</bar>')
+        self.assertEqual(tpl('bar', {}),
+                         '<?xml version="1.0"?>\n<bar>bar</bar>')
         self.assertEqual(len(tpl.templates), 2)
 
         self.assertEqual(tpl('baz', {}), '<p>baz</p>')
@@ -93,16 +94,15 @@ class TestTemplate(unittest.TestCase):
         # we have some defaults and it is not enough to fill the template,
         # unless provided some data as an argument
         tpl = template.Template({"bar": 2})
-        self.assertEqual(tpl._get_updated_template("blah", {}), "blah")
-        self.assertRaises(KeyError, tpl._get_updated_template, "blah %(foo)s",
-                          {})
-        self.assertEqual(tpl._get_updated_template("blah %(foo)s, %(bar)s",
-                                                   {"foo": 1}),
-                                                   "blah 1, 2")
+        _method = tpl._get_updated_template
+
+        self.assertEqual(_method("blah", {}), "blah")
+        self.assertRaises(KeyError, _method, "blah %(foo)s", {})
+        self.assertEqual(_method("blah %(foo)s, %(bar)s", {"foo": 1}),
+                         "blah 1, 2")
         # data passed as argument overcomes the defaults
-        self.assertEqual(tpl._get_updated_template("blah %(foo)s, %(bar)s",
-                                                   {"foo": 1, "bar": 3}),
-                                                   "blah 1, 3")
+        self.assertEqual(_method("blah %(foo)s, %(bar)s",
+                                 {"foo": 1, "bar": 3}), "blah 1, 3")
 
 
 if __name__ == '__main__':

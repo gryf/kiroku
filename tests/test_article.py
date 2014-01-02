@@ -148,7 +148,7 @@ class TestArticle(unittest.TestCase):
         self.assertEqual(art.html_fname, "fo-o-bar-Oto-smok.html")
 
         art = article.Article("\\who is using such silly names?."
-                             " żółty smok%.article", kiroku.CONFIG)
+                              " żółty smok%.article", kiroku.CONFIG)
         art._set_html_name()
         self.assertEqual(art.html_fname,
                          "who-is-using-such-silly-names-zolty-smok.html")

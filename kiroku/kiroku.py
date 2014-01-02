@@ -72,9 +72,9 @@ def init(argparse, cfg):
 
 def _minify_css(fname):
     """Minify CSS (destructive!)"""
-    comments = re.compile('\/\*.*?\*\/')
-    whitespace = re.compile('[\n\s\t][\n\s\t]+')
-    space = re.compile('\s?([;:{},+>])\s?')
+    comments = re.compile(r'/\*.*?\*/')
+    whitespace = re.compile(r'[\n\s\t][\n\s\t]+')
+    space = re.compile(r'\s?([;:{},+>])\s?')
 
     with open(fname) as fobj:
         css = fobj.read()
@@ -230,16 +230,16 @@ class Kiroku:
             with open(os.path.join("build", "tag-%s.html" %
                                    tag.translate(TR_TABLE)), "w") as fobj:
 
-                fobj.write(self._templ("main",
-                                       {"title": title + " - ",
-                                        "header": self._templ("header",
-                                                              {"title": title}),
-                                        "body": " ".join(titles),
-                                        "class_index": "current",
-                                        "class_arch": "",
-                                        "class_about": "",
-                                        "footer": "",
-                                        "tag_cloud": self.tag_cloud}))
+                data = {"title": title + " - ",
+                        "header": self._templ("header", {"title": title}),
+                        "body": " ".join(titles),
+                        "class_index": "current",
+                        "class_arch": "",
+                        "class_about": "",
+                        "footer": "",
+                        "tag_cloud": self.tag_cloud}
+
+                fobj.write(self._templ("main", data))
 
     def _index(self):
         """Create index.html for the main site entry"""
@@ -419,7 +419,7 @@ class Kiroku:
         """Initialize given directory with details"""
         if os.path.exists(target):
             print("File or directory `%s' exists. Removing. You may commit "
-                     "seppuku." % target)
+                  "seppuku." % target)
             shutil.rmtree(target)
 
         print("Initializing `%s'" % target)

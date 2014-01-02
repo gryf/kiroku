@@ -101,7 +101,8 @@ class TestKiroku(unittest.TestCase):
         with open(".templates/headline.html", "w") as fobj:
             fobj.write("<p>%(title)s</p>")
         with open(".templates/article_tag.html", "w") as fobj:
-            fobj.write("<a url='%(server_root)s%(tag_url)s'><p>%(tag)s</p></a>")
+            fobj.write("<a url='%(server_root)s%(tag_url)s'><p>%(tag)s</p>"
+                       "</a>")
         with open(".templates/tag.html", "w") as fobj:
             fobj.write("%(size)d\n%(tag)s\ntag_%(tag_url)s\n%(count)d")
         with open(".templates/article_short.html", "w") as fobj:

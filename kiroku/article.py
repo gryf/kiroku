@@ -109,7 +109,7 @@ class Article:
         """Caclulate html uri part"""
         # Files are sometimes named:
         # YYYY-MM-DD_some_informative_name.rst
-        re_fname = re.compile("\d{4}-\d{2}-\d{2}_(.*)")
+        re_fname = re.compile(r"\d{4}-\d{2}-\d{2}_(.*)")
 
         dummy, name = os.path.split(self._fname)
         name, dummy = os.path.splitext(name)

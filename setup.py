@@ -87,7 +87,8 @@ class GeneratePot(Command):
 
     def run(self):
         """Execute command"""
-        os.system('xgettext -o kiroku/data/locale/kiroku.pot kiroku/*.py')
+        os.system('xgettext --from-code=utf-8 -o '
+                  'kiroku/data/locale/kiroku.pot kiroku/*.py')
 
 
 class GenerateMo(Command):
@@ -215,7 +216,7 @@ class CustomSdist(sdist.sdist):
 setup(name="kiroku",
       packages=["kiroku"],
       package_data={"kiroku": find_dists()},
-      version="0.8.0",
+      version="0.8.1",
       description="Static blog generator",
       author="Roman Dobosz",
       author_email="gryf73@gmail.com",
