@@ -127,6 +127,9 @@ class Kiroku:
             shutil.copytree(os.path.join("articles", dirname),
                             os.path.join("build", dirname))
         for fname in files:
+            if fname.lower().endswith("rst"):
+                continue
+
             if os.path.exists(os.path.join("build", fname)):
                 os.unlink(os.path.join("build", fname))
             shutil.copy(os.path.join("articles", fname),

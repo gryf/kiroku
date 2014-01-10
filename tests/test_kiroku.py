@@ -472,6 +472,9 @@ class TestKiroku(unittest.TestCase):
         self.assertIn("js", os.listdir("build"))
         self.assertIn("images", os.listdir("build"))
         self.assertIn("index.html", os.listdir("build"))
+        self.assertIn("full.rst", os.listdir("articles"))
+        self.assertNotIn("full.rst", os.listdir("build"))
+        self.assertIn("full.html", os.listdir("build"))
 
         shutil.rmtree("build/js")
         rec = kiroku.Kiroku(kiroku.CONFIG)
@@ -484,6 +487,7 @@ class TestKiroku(unittest.TestCase):
         os.mkdir("articles/something_else")
         with open("articles/afile.txt", "w") as fobj:
             fobj.write("foo")
+
         rec = kiroku.Kiroku(kiroku.CONFIG)
         rec.build()
         self.assertTrue(os.path.exists("build/something_else"))
@@ -494,6 +498,24 @@ class TestKiroku(unittest.TestCase):
         rec.build()
         self.assertTrue(os.path.exists("build/something_else"))
         self.assertTrue(os.path.exists("build/afile.txt"))
+
+        # write the file, and check it content after build
+        with open("articles/something_else/afile.txt", "w") as fobj:
+            fobj.write("foo")
+        rec = kiroku.Kiroku(kiroku.CONFIG)
+        rec.build()
+        self.assertTrue(os.path.exists("build/something_else/afile.txt"))
+        with open("articles/something_else/afile.txt") as fobj:
+            self.assertEqual(fobj.read(), r"foo")
+
+        # change the file, the content should change too
+        with open("articles/something_else/afile.txt", "w") as fobj:
+            fobj.write("bar")
+        rec = kiroku.Kiroku(kiroku.CONFIG)
+        rec.build()
+        self.assertTrue(os.path.exists("build/something_else/afile.txt"))
+        with open("articles/something_else/afile.txt") as fobj:
+            self.assertEqual(fobj.read(), r"bar")
 
     def test__join_tags(self):
         """Test _join_tags method"""
