@@ -55,5 +55,6 @@ class="nv">SOME_MORE_CODE</span>
 
         self.assertEqual(out, result)
 
+
 if __name__ == '__main__':
-        unittest.main()
+    unittest.main()

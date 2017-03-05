@@ -230,5 +230,6 @@ class TestBlogArticle(unittest.TestCase):
         self.assertEqual(art.publish(), ("", {"tags": "foo, bar",
                                               "data": "some data"}))
 
+
 if __name__ == '__main__':
-        unittest.main()
+    unittest.main()

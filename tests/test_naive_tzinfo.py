@@ -216,5 +216,6 @@ class TestPytzFunction(unittest.TestCase):
         self.assertEqual(naive_tzinfo.get_rfc822(date_, "Europe/Berlin"),
                          "Tue, 29 Jun 2010 20:20:00 +0200")
 
+
 if __name__ == '__main__':
     unittest.main()
