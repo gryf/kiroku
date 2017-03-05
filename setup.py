@@ -2,14 +2,15 @@
 """
 Setup for the Kiroku project
 """
-from distutils.command import sdist, build
-from distutils.core import setup, Command
-from unittest import TestLoader, TextTestRunner
+from distutils.command import build
+from distutils.command import sdist
 import os
-import sys
 import re
 import shutil
-from tempfile import mkdtemp
+import subprocess
+
+from setuptools import setup
+from setuptools import Command
 
 
 try:
@@ -53,7 +54,7 @@ class MinifyJavaScript(Command):
             print("You need `slimit' module to minify JavaScript files")
             return
 
-        for root, dirs, files in os.walk("kiroku/data/js"):
+        for root, _, files in os.walk("kiroku/data/js"):
             for fname in files:
                 if ".min." in fname:
                     continue
@@ -87,8 +88,10 @@ class GeneratePot(Command):
 
     def run(self):
         """Execute command"""
-        os.system('xgettext --from-code=utf-8 -o '
-                  'kiroku/data/locale/kiroku.pot kiroku/*.py')
+        subprocess.call(['xgettext', '--from-code=utf-8', '-o',
+                         'kiroku/data/locale/kiroku.pot'] +
+                        [os.path.join('kiroku', x)
+                         for x in os.listdir('kiroku') if x.endswith('.py')])
 
 
 class GenerateMo(Command):
@@ -125,72 +128,6 @@ class GenerateMo(Command):
             self.distribution.package_data['kiroku'].append(mo_file[7:])
 
 
-class TestRunner(Command):
-    """Run the test suite with optional coverage report"""
-    user_options = [("verbose", "v", "Don't suppress the output of the "
-                     "modules. Usefeull in debugging, overwrites default "
-                     "command behaviour (off by default)."),
-                    ("coverage", "c", "Report coverage for the tests")]
-    description = __doc__
-
-    def initialize_options(self):
-        """Initialize test options"""
-        self.verbose = False
-        self.coverage = False
-
-    def finalize_options(self):
-        """Has to beimplemented; not needed though"""
-
-    def run(self):
-        """Execute tests. Basically this is a hack to make tests run ALSO on
-        virtualenv environment. Also - because tests will run just fine with
-        docutils system wide installed, and kiroku as a git cloned repository.
-
-        Docutils have resource location implemented with heavy usage of
-        __file__ location with os.path, os.getcwd and so on, Moreover if paths
-        are equal on first two position in the path (for example:
-            foo/bar/baz
-            foo/bar/fizz
-        OR
-            /foo/bar/baz
-            /foo/fizz/bizz
-        see docutils.utils.__init__.py:relative_path function) it will
-        calculate such directories AS RELATIVE paths, which completely break
-        thing if we change the path with os.chdir, after importing or
-        registering docutils objects (which have a place in kiroku.py module)
-        - obviously it's done before any test case fires.
-
-        This probably will break anyway in case you create virtualenv in the
-        same directory as mkdtemp will do (/tmp by default).
-        """
-        _curdir = os.getcwd()
-        _dir = mkdtemp()
-        os.chdir(_dir)
-        sys.path.insert(0, '.')
-
-        try:
-            shutil.copytree(os.path.join(_curdir, "kiroku"), "kiroku")
-
-            if self.coverage:
-                cov = coverage.coverage()
-                cov.start()
-
-            loader = TestLoader()
-            suite = loader.discover(os.path.join(_curdir, "tests"),
-                                    pattern="test_*")
-            if self.verbose:
-                TextTestRunner().run(suite)
-            else:
-                TextTestRunner(buffer=True).run(suite)
-
-            if self.coverage:
-                cov.stop()
-                cov.report(include=["*/kiroku/*.py"], omit=["*test_*"])
-        finally:
-            os.chdir(_curdir)
-            shutil.rmtree(_dir)
-
-
 class CustomBuild(build.build):
     """Additional steps for build process"""
 
@@ -199,9 +136,10 @@ class CustomBuild(build.build):
         GenerateMo(self.distribution).run()
         MinifyJavaScript(self.distribution).run()
         super().run()
-        shutil.copyfile("README", os.path.join(self.build_lib,
-                                               self.distribution.packages[0],
-                                               'data/articles/readme.rst'))
+        shutil.copyfile("README.rst",
+                        os.path.join(self.build_lib,
+                                     self.distribution.packages[0],
+                                     'data/articles/readme.rst'))
 
 
 class CustomSdist(sdist.sdist):
@@ -226,6 +164,9 @@ setup(name="kiroku",
       requires=["docutils"],
       scripts=["scripts/kiroku"],
       classifiers=["Programming Language :: Python :: 3",
+                   "Programming Language :: Python :: 3.2",
+                   "Programming Language :: Python :: 3.3",
+                   "Programming Language :: Python :: 3.4",
                    "Development Status :: 4 - Beta",
                    "Environment :: Console",
                    "Intended Audience :: End Users/Desktop",
@@ -235,12 +176,11 @@ setup(name="kiroku",
                    "Topic :: Text Processing :: Linguistic",
                    "Topic :: Text Processing :: Markup",
                    "Topic :: Text Processing :: Markup :: HTML"],
-      long_description=open("README").read(),
+      long_description=open("README.rst").read(),
       cmdclass={'build': CustomBuild,
                 'gencat': GenerateMo,
                 'genpot': GeneratePot,
                 'minify': MinifyJavaScript,
-                'sdist': CustomSdist,
-                'test': TestRunner},
+                'sdist': CustomSdist},
       options={'test': {'verbose': False,
                         'coverage': False}})

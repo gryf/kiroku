@@ -1,3 +1,6 @@
+.. image:: https://badge.fury.io/py/kiroku.png
+   :target: http://badge.fury.io/py/kiroku
+
 What is Kiroku?
 ---------------
 
