@@ -1,4 +1,10 @@
 *.py[cod]
+*.egg-info
 __pycache__
+.cache
 .coverage
+.tox
+MANIFEST
+build
+dist
 tags
