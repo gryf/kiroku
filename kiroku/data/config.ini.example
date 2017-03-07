@@ -1,5 +1,5 @@
 [kiroku]
-locale = C
+locale = en_US.utf8
 server_name = localhost
 server_root = /
 server_protocol = http

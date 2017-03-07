@@ -224,7 +224,7 @@ initialization there is an example for the configuration in the file
 
 Following options under ``[kiroku]`` section are available:
 
-- ``locale`` (default ``C``) - language of the web pages.
+- ``locale`` (default ``en_US.UTF-8``) - language of the web pages.
 - ``server_name`` (default ``localhost``) - target server name. It'll be used
   for links in RSS and for `favicon`.
 - ``server_root`` (default ``/``) - The root of the page/blog can be set here.
@@ -258,6 +258,7 @@ and tools are required. Python packages:
 
 - `coverage`_ - tool for code coverage measurement
 - `slimit`_ - for minifying JavaScript files
+- `tox`_ - for test running
 
 Although not necessary, but recommended are two additional packages:
 
@@ -315,14 +316,6 @@ TODO
 ----
 
 There is still much to do. Here is the list of things I'm planning to do:
-
-#. Module ``kiroku.naive_tzinfo`` should be expanded to support more timezones.
-
-   Timezones are needed because of the ``pubDate`` tag in RSS and ``datetime``
-   attribute in ``<time>`` HTML5 tags. To decrease dependencies I've decided to
-   implement a *naïve* implementation for timezone info object and for now
-   **only** for CET/CEST timezone. The goal is to make it `pytz`_ compatible, so
-   Kiroku can use it if available. Done.
 
 #. Module for comments.
 
@@ -382,3 +375,4 @@ This software is licensed under Simplified BSD License::
 .. _Matt Palmer blogpost: http://www.hezmatt.org/~mpalmer/blog/2011/07/19/static-comments-in-jekyll.html
 .. _jinja: http://jinja.pocoo.org
 .. _mako: http://www.makotemplates.org
+.. _tox: https://tox.readthedocs.io
