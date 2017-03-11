@@ -153,7 +153,7 @@ class Kiroku:
             return
 
         print("Writing RSS file…")
-        rss = Rss(self._cfg)
+        rss = Rss(self._cfg, self.path)
 
         for art in self.articles[:10]:
             data = {"article_title": art.title,
@@ -363,7 +363,7 @@ class Kiroku:
 
         print("Generating about page…")
 
-        with open(os.path.join(self.path, self._about_fname)) as fobj:
+        with open(self._about_fname) as fobj:
             html, dummy = BlogArticle(fobj.read()).publish()
 
         title = self._cfg["i18n_about"]
@@ -436,7 +436,6 @@ class Kiroku:
         print("Initializing `%s'" % self.path)
 
         os.mkdir(self.path)
-        # os.chdir(self.path)
 
         shutil.copytree(os.path.join(DATA_DIR, "articles"),
                         os.path.join(self.path, "articles"))

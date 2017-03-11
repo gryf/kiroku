@@ -7,10 +7,10 @@ from kiroku.template import Template
 
 class Rss:
     """Rss representation class"""
-    def __init__(self, cfg):
+    def __init__(self, cfg, path='.'):
         """Initialize RSS container"""
         self.items = []
-        self._templ = Template(cfg)
+        self._templ = Template(cfg, path)
 
     def add(self, item):
         """Add rss item to the list. Parameter item is a dictionary which

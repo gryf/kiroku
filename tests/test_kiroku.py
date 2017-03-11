@@ -9,7 +9,6 @@ import json
 import locale
 import os
 import shutil
-import shutil
 import tempfile
 import time
 import unittest
@@ -183,7 +182,8 @@ class TestKiroku(unittest.TestCase):
 
         for idx in range(3):
             art = kiroku.Article(None, kiroku.CONFIG)
-            art.created = datetime.datetime.strptime("20101010111010", "%Y%m%d%H%M%S")
+            art.created = datetime.datetime.strptime("20101010111010",
+                                                     "%Y%m%d%H%M%S")
             art.tags = tags[idx]
             art.html_fname = fnames[idx] + ".html"
             art.title = fnames[idx]
@@ -527,8 +527,8 @@ class TestKiroku(unittest.TestCase):
                                                     "build/afile.txt")))
 
         # write the file, and check it content after build
-        with open(os.path.join(self._dir, "articles/something_else/afile.txt"),
-                               "w") as fobj:
+        with open(os.path.join(self._dir, 'articles', 'something_else',
+                               'afile.txt'), "w") as fobj:
             fobj.write("foo")
         rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
         rec.build()
@@ -589,7 +589,7 @@ class TestKiroku(unittest.TestCase):
         art.title = "foo"
         art.tags = ['a', 'b']
         art.created = datetime.datetime.strptime("2000-12-12 12:05:00",
-                                        "%Y-%m-%d %H:%M:%S")
+                                                 "%Y-%m-%d %H:%M:%S")
         rec.articles = [art]
 
         art = kiroku.Article("bar.rst", kiroku.CONFIG)
@@ -598,7 +598,7 @@ class TestKiroku(unittest.TestCase):
         art.title = "bar"
         art.tags = ['b', 'c']
         art.created = datetime.datetime.strptime("2000-12-12 12:05:00",
-                                        "%Y-%m-%d %H:%M:%S")
+                                                 "%Y-%m-%d %H:%M:%S")
         rec.articles.append(art)
 
         rec._create_json_data()
