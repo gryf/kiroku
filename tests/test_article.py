@@ -60,26 +60,26 @@ class TestArticle(unittest.TestCase):
         self._config = deepcopy(kiroku.CONFIG)
         kiroku.CONFIG['locale'] = 'C'
         kiroku.CONFIG.update(kiroku.get_i18n_strings(gettext))
-        self._curdir = os.path.abspath(os.curdir)
+        _curdir = os.path.abspath(os.curdir)
         self._dir = mkdtemp()
         os.chdir(self._dir)
         os.mkdir('articles')
 
         for fname, content in MOCK_ARTICLES.items():
-            full_path = os.path.join('articles', fname)
+            full_path = os.path.join(self._dir, 'articles', fname)
             with open(full_path, "w") as fobj:
                 fobj.write(content[0])
                 os.utime(full_path, (content[1], content[1]))
+        os.chdir(_curdir)
 
     def tearDown(self):
         """Clean up"""
-        os.chdir(self._curdir)
         rmtree(self._dir)
         kiroku.CONFIG = deepcopy(self._config)
 
     def test_initialization(self):
         """Tests initialization of the article"""
-        art_fname = os.path.join('articles', "empty.rst")
+        art_fname = os.path.join(self._dir, 'articles', "empty.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         self.assertEqual(art.body, None)
         self.assertEqual(art.created, None)
@@ -88,7 +88,7 @@ class TestArticle(unittest.TestCase):
         self.assertEqual(art.tags, [])
         self.assertEqual(art.title, None)
 
-        art_fname = os.path.join('articles', "minimal.rst")
+        art_fname = os.path.join(self._dir, 'articles', "minimal.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         self.assertEqual(art.body, None)
         self.assertEqual(art.created, None)
@@ -99,13 +99,13 @@ class TestArticle(unittest.TestCase):
 
     def test__transfrom_to_html(self):
         """Test _transfrom_to_html method"""
-        art_fname = os.path.join('articles', "empty.rst")
+        art_fname = os.path.join(self._dir, 'articles', "empty.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         html, attrs = art._transfrom_to_html()
         self.assertEqual(attrs, {})
         self.assertEqual(html, '')
 
-        art_fname = os.path.join('articles', "complete.rst")
+        art_fname = os.path.join(self._dir, 'articles', "complete.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         html, attrs = art._transfrom_to_html()
         self.assertEqual(attrs, {'datetime': '2013-09-08 10:57:24',
@@ -117,7 +117,7 @@ class TestArticle(unittest.TestCase):
         self.assertIn('<strong>Vestibulum</strong>', html)
         self.assertNotIn('<!-- more -->', html)
 
-        art_fname = os.path.join('articles', "full.rst")
+        art_fname = os.path.join(self._dir, 'articles', "full.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         html, attrs = art._transfrom_to_html()
         self.assertEqual(attrs, {'datetime': '2013-09-08 10:57:24',
@@ -165,7 +165,7 @@ class TestArticle(unittest.TestCase):
         self.assertRaises(TypeError, art._set_ctime)
 
         # Try to caclulate creation time with the file mtime
-        art_fname = os.path.join('articles', "empty.rst")
+        art_fname = os.path.join(self._dir, 'articles', "empty.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         art._set_ctime()
         self.assertEqual(art.created,
@@ -186,21 +186,21 @@ class TestArticle(unittest.TestCase):
 
     def test_created_short(self):
         """Test created_short method"""
-        art_fname = os.path.join('articles', "empty.rst")
+        art_fname = os.path.join(self._dir, 'articles', "empty.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         art.read()
         self.assertEqual(art.created_short(), "10 Oct, 2010")
 
     def test_created_rfc3339(self):
         """Test created_rfc3339 method"""
-        art_fname = os.path.join('articles', "empty.rst")
+        art_fname = os.path.join(self._dir, 'articles', "empty.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         art.read()
         self.assertEqual(art.created_rfc3339(), "2010-10-10T11:10:10+0000")
 
     def test_created_rfc822(self):
         """Test created_rfc822 method"""
-        art_fname = os.path.join('articles', "empty.rst")
+        art_fname = os.path.join(self._dir, 'articles', "empty.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         art.read()
         self.assertEqual(art.created_rfc822(),
@@ -208,7 +208,7 @@ class TestArticle(unittest.TestCase):
 
     def test_created_detailed(self):
         """Test created_detailed method"""
-        art_fname = os.path.join('articles', "empty.rst")
+        art_fname = os.path.join(self._dir, 'articles', "empty.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         art.read()
         self.assertEqual(art.created_detailed(),
@@ -216,19 +216,19 @@ class TestArticle(unittest.TestCase):
 
     def test_get_short_body(self):
         """Test get_short_body method"""
-        art_fname = os.path.join('articles', "empty.rst")
+        art_fname = os.path.join(self._dir, 'articles', "empty.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         art.read()
         self.assertEqual(art.get_short_body(), art.body)
         self.assertEqual(art.get_short_body(), "")
 
-        art_fname = os.path.join('articles', "incomplete.rst")
+        art_fname = os.path.join(self._dir, 'articles', "incomplete.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         art.read()
         self.assertEqual(art.get_short_body(), art.body)
         self.assertEqual(art.get_short_body(), "<p>body, body</p>")
 
-        art_fname = os.path.join('articles', "complete.rst")
+        art_fname = os.path.join(self._dir, 'articles', "complete.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         art.read()
         self.assertEqual(art.get_short_body(), art.body)
@@ -238,7 +238,7 @@ class TestArticle(unittest.TestCase):
         self.assertIn('<strong>Vestibulum</strong>', art.get_short_body())
         self.assertIn('aliquet.</p>', art.get_short_body())
 
-        art_fname = os.path.join('articles', "full.rst")
+        art_fname = os.path.join(self._dir, 'articles', "full.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         art.read()
         self.assertNotEqual(art.get_short_body(), art.body)
@@ -254,7 +254,7 @@ class TestArticle(unittest.TestCase):
 
     def test__set_title(self):
         """Test _set_title method"""
-        art_fname = os.path.join('articles', "empty.rst")
+        art_fname = os.path.join(self._dir, 'articles', "empty.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         self.assertEqual(art.title, None)
         art._set_title(None)
@@ -266,17 +266,17 @@ class TestArticle(unittest.TestCase):
 
     def test_read(self):
         """Test read method"""
-        art_fname = os.path.join('articles', "empty.rst")
+        art_fname = os.path.join(self._dir, 'articles', "empty.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         art.read()
         self.assertEqual(art.body, "")
 
-        art_fname = os.path.join('articles', "incomplete.rst")
+        art_fname = os.path.join(self._dir, 'articles', "incomplete.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         art.read()
         self.assertEqual(art.body, "<p>body, body</p>")
 
-        art_fname = os.path.join('articles', "complete.rst")
+        art_fname = os.path.join(self._dir, 'articles', "complete.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         art.read()
         self.assertIn("<h2>Kiroku</h2>", art.body)
@@ -285,7 +285,7 @@ class TestArticle(unittest.TestCase):
         self.assertIn("aliquet.</p>", art.body)
         self.assertNotIn("<!-- more -->", art.body)
 
-        art_fname = os.path.join('articles', "full.rst")
+        art_fname = os.path.join(self._dir, 'articles', "full.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         art.read()
         self.assertIn("<h2>Kiroku</h2>", art.body)
@@ -293,7 +293,3 @@ class TestArticle(unittest.TestCase):
         self.assertIn("elit.</p>", art.body)
         self.assertIn("<!-- more -->", art.body)
         self.assertIn("leo.</p>", art.body)
-
-
-if __name__ == '__main__':
-    unittest.main()

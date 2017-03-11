@@ -2,6 +2,7 @@
 """
 Tests for reStructuredText translator and writer
 """
+import locale
 import unittest
 
 from docutils.nodes import SkipNode
@@ -17,7 +18,7 @@ class MockDocument(object):
     """Mock the document"""
     def __init__(self):
         self.settings = Mock()
-        self.settings.language_code = "C"
+        self.settings.language_code = "en_US.UTF-8"
         self.settings.xml_declaration = None
         self.settings.stylesheet_path = None
         self.settings.stylesheet = None
@@ -35,7 +36,11 @@ class TestCustomHTMLTranslator(unittest.TestCase):
 
     def setUp(self):
         """Setup"""
+        locale.setlocale(locale.LC_ALL, 'en_US.utf-8')
         self.doc = MockDocument()
+
+    def tearDown(self):
+        rest.BlogArticle.ATTRS = {}
 
     def test_initialization(self):
         """Tests initialization of the translator"""

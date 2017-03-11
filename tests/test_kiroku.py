@@ -2,18 +2,18 @@
 """
 Tests for kiroku module
 """
-from copy import deepcopy
-from datetime import datetime, timedelta
-from gettext import gettext
-from shutil import rmtree, copytree
-from tempfile import mkdtemp
-from xml.etree import ElementTree as etree
+import copy
+import datetime
+import gettext
 import json
+import locale
 import os
 import shutil
+import shutil
+import tempfile
 import time
 import unittest
-import locale
+from xml.etree import ElementTree
 
 from kiroku import kiroku
 
@@ -56,37 +56,38 @@ MOCK_ARTICLES = {'empty.rst': ('', int(time.mktime((2010, 10, 10, 10, 10, 10,
 
 class MockKiroku:
     """Fake Kiroku class"""
-    def __init__(self, cfg):
+    def __init__(self, cfg, path='.'):
         """Mock init method"""
 
     def build(self):
         """Fake build method"""
         return 0
 
-    def init(self, target_path):
+    def init(self):
         """Fake init method"""
         return 0
 
 
 class MockArgParse:
     """Fake ArgumentParser class"""
-    def __init__(self):
+    def __init__(self, path):
         self.dir_or_path = True
+        self.path = path
 
 
 class TestKiroku(unittest.TestCase):
     """Test Kiroku class"""
 
     def setUp(self):
-        """Assumption is, that all operations are performed in current
-        directory with hardcoded article directory"""
-        self._config = deepcopy(kiroku.CONFIG)
-        kiroku.CONFIG.update(kiroku.get_i18n_strings(gettext))
-        self._curdir = os.path.abspath(os.curdir)
-        self._dir = mkdtemp()
+        """Prepare kiroku output directory"""
+        self._config = copy.deepcopy(kiroku.CONFIG)
+        kiroku.CONFIG.update(kiroku.get_i18n_strings(gettext.gettext))
+        _curdir = os.path.abspath(os.curdir)
+        self._dir = tempfile.mkdtemp()
         os.chdir(self._dir)
         os.makedirs('articles/images')
-        copytree(os.path.join(kiroku.DATA_DIR, "templates"), ".templates")
+        shutil.copytree(os.path.join(kiroku.DATA_DIR, "templates"),
+                        ".templates")
 
         for fname, content in MOCK_ARTICLES.items():
             full_path = os.path.join('articles', fname)
@@ -123,12 +124,12 @@ class TestKiroku(unittest.TestCase):
             fobj.write('body {\n    background-color :  "olive" ;  \n}')
 
         os.mkdir(".js")
+        os.chdir(_curdir)
 
     def tearDown(self):
         """Clean up"""
-        os.chdir(self._curdir)
-        rmtree(self._dir)
-        kiroku.CONFIG = deepcopy(self._config)
+        shutil.rmtree(self._dir)
+        kiroku.CONFIG = copy.deepcopy(self._config)
         # reset locale to C, since build() and _rss() methods reset locale
         # to those which are available on the system side.
         locale.setlocale(locale.LC_ALL, "C")
@@ -144,22 +145,21 @@ class TestKiroku(unittest.TestCase):
 
     def test__about(self):
         """Test _about method"""
-        os.mkdir("build")
-        rec = kiroku.Kiroku(kiroku.CONFIG)
+        os.mkdir(os.path.join(self._dir, "build"))
+        rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
         self.assertEqual(rec._about_fname, None)
         rec._about()
 
-        rec._about_fname = "articles/about.rst"
+        rec._about_fname = os.path.join(self._dir, "articles/about.rst")
         rec._about()
-        self.assertTrue(os.path.exists("build/about.html"))
-        with open("build/about.html") as fobj:
+        self.assertTrue(os.path.exists(os.path.join(self._dir,
+                                                    "build/about.html")))
+        with open(os.path.join(self._dir, "build/about.html")) as fobj:
             self.assertIn("<p>Hi, my name is</p>", fobj.read())
 
     def test__archive(self):
         """Test _archive method"""
-        os.mkdir("build")
-        rec = kiroku.Kiroku(kiroku.CONFIG)
-        self.assertEqual(rec._archive(), None)
+        os.mkdir(os.path.join(self._dir, "build"))
         tags = {0: ["bar", "foo"],
                 1: ["bar"],
                 2: ["bar", "baz"],
@@ -175,12 +175,15 @@ class TestKiroku(unittest.TestCase):
                   5: "five",
                   6: "six"}
 
-        with open("build/archives.html") as fobj:
+        rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
+
+        self.assertEqual(rec._archive(), None)
+        with open(os.path.join(self._dir, "build/archives.html")) as fobj:
             self.assertEqual(fobj.read().strip(), "")
 
         for idx in range(3):
             art = kiroku.Article(None, kiroku.CONFIG)
-            art.created = datetime.strptime("20101010111010", "%Y%m%d%H%M%S")
+            art.created = datetime.datetime.strptime("20101010111010", "%Y%m%d%H%M%S")
             art.tags = tags[idx]
             art.html_fname = fnames[idx] + ".html"
             art.title = fnames[idx]
@@ -188,14 +191,15 @@ class TestKiroku(unittest.TestCase):
 
         rec._archive()
 
-        with open("build/archives.html") as fobj:
+        with open(os.path.join(self._dir, "build/archives.html")) as fobj:
             self.assertEqual(fobj.read().strip(), "")
 
         rec.articles = []
         for idx in range(6):
             art = kiroku.Article(None, kiroku.CONFIG)
-            art.created = datetime.strptime("20101010111010", "%Y%m%d%H%M%S")
-            art.created += timedelta(idx)
+            art.created = datetime.datetime.strptime("20101010111010",
+                                                     "%Y%m%d%H%M%S")
+            art.created += datetime.timedelta(idx)
             art.tags = tags[idx]
             art.html_fname = fnames[idx] + ".html"
             art.title = fnames[idx]
@@ -203,14 +207,15 @@ class TestKiroku(unittest.TestCase):
 
         rec._archive()
 
-        with open("build/archives.html") as fobj:
+        with open(os.path.join(self._dir, "build/archives.html")) as fobj:
             self.assertEqual(fobj.read().strip(), "<p>five</p>")
 
         rec.articles = []
         for idx in tags:
             art = kiroku.Article(None, kiroku.CONFIG)
-            art.created = datetime.strptime("20101010111010", "%Y%m%d%H%M%S")
-            art.created += timedelta(idx)
+            art.created = datetime.datetime.strptime("20101010111010",
+                                                     "%Y%m%d%H%M%S")
+            art.created += datetime.timedelta(idx)
             art.tags = tags[idx]
             art.html_fname = fnames[idx] + ".html"
             art.title = fnames[idx]
@@ -218,7 +223,7 @@ class TestKiroku(unittest.TestCase):
 
         rec._archive()
 
-        with open("build/archives.html") as fobj:
+        with open(os.path.join(self._dir, "build/archives.html")) as fobj:
             data = fobj.read().split(" ")
             self.assertEqual(len(data), 2, "Only two articles out of 7 "
                              "should be on archive page")
@@ -227,7 +232,7 @@ class TestKiroku(unittest.TestCase):
 
     def test__calculate_tag_cloud(self):
         """Test _calculate_tag_cloud method"""
-        rec = kiroku.Kiroku(kiroku.CONFIG)
+        rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
         self.assertEqual(rec.tag_cloud, None)
         rec._calculate_tag_cloud()
         self.assertEqual(rec.tag_cloud, "")
@@ -253,18 +258,19 @@ class TestKiroku(unittest.TestCase):
 
     def test__harvest(self):
         """Test _harvest method"""
-        rec = kiroku.Kiroku(kiroku.CONFIG)
+        rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
         rec.read = lambda: None
         self.assertRaises(TypeError, rec._harvest, None)
 
-        rec._harvest("articles/full.rst")
-        self.assertEqual(rec.tags, {'blog': ['articles/full.rst']})
+        rec._harvest(os.path.join(self._dir, "articles/full.rst"))
+        self.assertEqual(rec.tags,
+                         {'blog': [os.path.join(self._dir,
+                                                'articles/full.rst')]})
 
     def test__index(self):
         """Test _index method"""
-        os.mkdir("build")
-        rec = kiroku.Kiroku(kiroku.CONFIG)
-        self.assertEqual(rec._index(), None)
+        os.mkdir(os.path.join(self._dir, "build"))
+        rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
         tags = {0: ["bar", "foo"],
                 1: ["bar"],
                 2: ["bar", "baz"],
@@ -280,12 +286,15 @@ class TestKiroku(unittest.TestCase):
                   5: "five",
                   6: "six"}
 
-        with open("build/index.html") as fobj:
+        self.assertEqual(rec._index(), None)
+
+        with open(os.path.join(self._dir, "build/index.html")) as fobj:
             self.assertEqual(fobj.read().strip(), "")
 
         for idx in range(3):
             art = kiroku.Article(None, kiroku.CONFIG)
-            art.created = datetime.strptime("20101010111010", "%Y%m%d%H%M%S")
+            art.created = datetime.datetime.strptime("20101010111010",
+                                                     "%Y%m%d%H%M%S")
             art.tags = tags[idx]
             art.html_fname = fnames[idx] + ".html"
             art.title = fnames[idx]
@@ -295,7 +304,7 @@ class TestKiroku(unittest.TestCase):
         rec._index()
 
         self.assertEqual(len(rec.articles), 3)
-        with open("build/index.html") as fobj:
+        with open(os.path.join(self._dir, "build/index.html")) as fobj:
             data = fobj.read()
             self.assertIn("url_zero.html", data)
             self.assertIn("url_one.html", data)
@@ -304,8 +313,9 @@ class TestKiroku(unittest.TestCase):
         rec.articles = []
         for idx in range(6):
             art = kiroku.Article(None, kiroku.CONFIG)
-            art.created = datetime.strptime("20101010111010", "%Y%m%d%H%M%S")
-            art.created += timedelta(idx)
+            art.created = datetime.datetime.strptime("20101010111010",
+                                                     "%Y%m%d%H%M%S")
+            art.created += datetime.timedelta(idx)
             art.tags = tags[idx]
             art.html_fname = fnames[idx] + ".html"
             art.title = fnames[idx]
@@ -315,7 +325,7 @@ class TestKiroku(unittest.TestCase):
         rec._index()
 
         self.assertEqual(len(rec.articles), 6)
-        with open("build/index.html") as fobj:
+        with open(os.path.join(self._dir, "build/index.html")) as fobj:
             data = fobj.read().split("*end*")
             data = [x for x in data if x.strip()]
             self.assertEqual(len(data), 5,
@@ -323,47 +333,49 @@ class TestKiroku(unittest.TestCase):
 
     def test__rss(self):
         """Test _rss method"""
-        os.mkdir("build")
-        rec = kiroku.Kiroku(kiroku.CONFIG)
+        os.mkdir(os.path.join(self._dir, "build"))
+        rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
 
         rec._rss()
-        self.assertFalse(os.path.exists("build/rss.xml"))
+        self.assertFalse(os.path.exists(os.path.join(self._dir,
+                                                     "build/rss.xml")))
 
-        rec = kiroku.Kiroku(kiroku.CONFIG)
+        rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
         for idx in range(1):
             art = kiroku.Article(None, kiroku.CONFIG)
-            art.created = datetime.strptime("20101010111010", "%Y%m%d%H%M%S")
-            art.created += timedelta(idx)
+            art.created = datetime.datetime.strptime("20101010111010",
+                                                     "%Y%m%d%H%M%S")
+            art.created += datetime.timedelta(idx)
             art.html_fname = "l%d" % idx
             art.title = "t%d" % idx
             art.body = "d%d" % idx
             rec.articles.append(art)
 
         rec._rss()
-        with open("build/rss.xml") as fobj:
-            xml = etree.fromstring(fobj.read())
+        with open(os.path.join(self._dir, "build/rss.xml")) as fobj:
+            xml = ElementTree.fromstring(fobj.read())
 
         self.assertEqual(len(xml), 1)
         self.assertEqual(xml.tag, 'rss')
         self.assertEqual(len(xml[0]), 5)
         self.assertEqual(xml[0][4].tag, 'item')
 
-        rec = kiroku.Kiroku(kiroku.CONFIG)
+        rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
         # Create 11 records. Note, that record with guid l0 is oldest, and l10
         # is youngest record
         for idx in range(11):
             art = kiroku.Article(None, kiroku.CONFIG)
-            art.created = datetime.strptime("201010%d111010" % (idx + 1),
-                                            "%Y%m%d%H%M%S")
-            art.created += timedelta(idx)
+            art.created = datetime.datetime.strptime("201010%d111010" %
+                                                     (idx + 1), "%Y%m%d%H%M%S")
+            art.created += datetime.timedelta(idx)
             art.html_fname = "l%d" % idx
             art.title = "t%d" % idx
             art.body = "d%d" % idx
             rec.articles.append(art)
 
         rec._rss()
-        with open("build/rss.xml") as fobj:
-            xml = etree.fromstring(fobj.read())
+        with open(os.path.join(self._dir, "build/rss.xml")) as fobj:
+            xml = ElementTree.fromstring(fobj.read())
 
         self.assertEqual(len(xml), 1)
         self.assertEqual(xml.tag, 'rss')
@@ -382,34 +394,37 @@ class TestKiroku(unittest.TestCase):
 
     def test__save(self):
         """Test _save method"""
-        os.mkdir("build")
-        rec = kiroku.Kiroku(kiroku.CONFIG)
+        os.mkdir(os.path.join(self._dir, "build"))
+        rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
         rec._save()
-        self.assertEqual(os.listdir("build"), [])
+        self.assertEqual(os.listdir(os.path.join(self._dir, "build")), [])
 
         for idx in range(3):
             art = kiroku.Article(None, kiroku.CONFIG)
-            art.created = datetime.strptime("20101010111010", "%Y%m%d%H%M%S")
-            art.created += timedelta(idx)
+            art.created = datetime.datetime.strptime("20101010111010",
+                                                     "%Y%m%d%H%M%S")
+            art.created += datetime.timedelta(idx)
             art.html_fname = "l%d" % idx
             art.title = "t%d" % idx
             art.body = "d%d" % idx
             rec.articles.append(art)
 
         rec._save()
-        self.assertEqual(sorted(os.listdir("build")), ['l0', 'l1', 'l2'])
+        self.assertEqual(sorted(os.listdir(os.path.join(self._dir, "build"))),
+                         ['l0', 'l1', 'l2'])
 
     def test__tag_pages(self):
         """Test _tag_pages method"""
-        os.mkdir("build")
-        rec = kiroku.Kiroku(kiroku.CONFIG)
+        os.mkdir(os.path.join(self._dir, "build"))
+        rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
         rec._tag_pages()
-        self.assertEqual(os.listdir("build"), [])
+        self.assertEqual(os.listdir(os.path.join(self._dir, "build")), [])
 
         for idx in range(3):
             art = kiroku.Article(None, kiroku.CONFIG)
-            art.created = datetime.strptime("20101010111010", "%Y%m%d%H%M%S")
-            art.created += timedelta(idx)
+            art.created = datetime.datetime.strptime("20101010111010",
+                                                     "%Y%m%d%H%M%S")
+            art.created += datetime.timedelta(idx)
             art.html_fname = "l%d" % idx
             art.title = "t%d" % idx
             art.body = "d%d" % idx
@@ -420,24 +435,24 @@ class TestKiroku(unittest.TestCase):
         rec.articles[2].tags = ['a', 'c']
 
         rec._tag_pages()
-        self.assertEqual(sorted(os.listdir("build")),
+        self.assertEqual(sorted(os.listdir(os.path.join(self._dir, "build"))),
                          ['tag-a.html', 'tag-b.html', 'tag-c.html'])
 
         title1, title2, title3 = ('<p>t0</p>', '<p>t1</p>', '<p>t2</p>')
 
-        with open(os.path.join('build', 'tag-a.html')) as fobj:
+        with open(os.path.join(self._dir, 'build', 'tag-a.html')) as fobj:
             tag_res = fobj.read()
         self.assertIn(title1, tag_res)
         self.assertIn(title3, tag_res)
         self.assertNotIn(title2, tag_res)
 
-        with open(os.path.join('build', 'tag-b.html')) as fobj:
+        with open(os.path.join(self._dir, 'build', 'tag-b.html')) as fobj:
             tag_res = fobj.read()
         self.assertIn(title1, tag_res)
         self.assertNotIn(title2, tag_res)
         self.assertNotIn(title3, tag_res)
 
-        with open(os.path.join('build', 'tag-c.html')) as fobj:
+        with open(os.path.join(self._dir, 'build', 'tag-c.html')) as fobj:
             tag_res = fobj.read()
         self.assertNotIn(title1, tag_res)
         self.assertIn(title2, tag_res)
@@ -445,14 +460,17 @@ class TestKiroku(unittest.TestCase):
 
     def test__walk(self):
         """Test _walk method"""
-        rec = kiroku.Kiroku(kiroku.CONFIG)
-        self.assertEqual(len(os.listdir("articles")), 7)
+        rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
+        self.assertEqual(len(os.listdir(os.path.join(self._dir, "articles"))),
+                         7)
         self.assertTrue(rec._about_fname is None)
 
         # create additional file, with other extension than '.rst'
-        with open(os.path.join("articles", "something.txt"), "w") as fobj:
+        with open(os.path.join(self._dir, "articles", "something.txt"),
+                  "w") as fobj:
             fobj.write("Hi!\n")
-        self.assertEqual(len(os.listdir("articles")), 8)
+        self.assertEqual(len(os.listdir(os.path.join(self._dir,
+                                                     "articles"))), 8)
 
         rec._walk()
 
@@ -466,60 +484,78 @@ class TestKiroku(unittest.TestCase):
         """Test build method. Basically this is entry point for other methods,
         and the only responsible for this method is to prepare build
         directory."""
-        rec = kiroku.Kiroku(kiroku.CONFIG)
+        rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
         rec.build()
-        self.assertIn("css", os.listdir("build"))
-        self.assertIn("js", os.listdir("build"))
-        self.assertIn("images", os.listdir("build"))
-        self.assertIn("index.html", os.listdir("build"))
-        self.assertIn("full.rst", os.listdir("articles"))
-        self.assertNotIn("full.rst", os.listdir("build"))
-        self.assertIn("full.html", os.listdir("build"))
+        self.assertIn("css", os.listdir(os.path.join(self._dir, "build")))
+        self.assertIn("js", os.listdir(os.path.join(self._dir, "build")))
+        self.assertIn("images", os.listdir(os.path.join(self._dir, "build")))
+        self.assertIn("index.html", os.listdir(os.path.join(self._dir,
+                                                            "build")))
+        self.assertIn("full.rst", os.listdir(os.path.join(self._dir,
+                                                          "articles")))
+        self.assertNotIn("full.rst", os.listdir(os.path.join(self._dir,
+                                                             "build")))
+        self.assertIn("full.html", os.listdir(os.path.join(self._dir,
+                                                           "build")))
 
-        shutil.rmtree("build/js")
-        rec = kiroku.Kiroku(kiroku.CONFIG)
+        shutil.rmtree(os.path.join(self._dir, "build/js"))
+        rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
         rec.build()
-        self.assertIn("css", os.listdir("build"))
-        self.assertNotIn("js", os.listdir("build"))
-        self.assertIn("images", os.listdir("build"))
-        self.assertIn("index.html", os.listdir("build"))
+        self.assertIn("css", os.listdir(os.path.join(self._dir, "build")))
+        self.assertNotIn("js", os.listdir(os.path.join(self._dir, "build")))
+        self.assertIn("images", os.listdir(os.path.join(self._dir, "build")))
+        self.assertIn("index.html", os.listdir(os.path.join(self._dir,
+                                                            "build")))
 
-        os.mkdir("articles/something_else")
-        with open("articles/afile.txt", "w") as fobj:
+        os.mkdir(os.path.join(self._dir, 'articles/something_else'))
+        with open(os.path.join(self._dir, 'articles/afile.txt'), "w") as fobj:
             fobj.write("foo")
 
-        rec = kiroku.Kiroku(kiroku.CONFIG)
+        rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
         rec.build()
-        self.assertTrue(os.path.exists("build/something_else"))
-        self.assertTrue(os.path.exists("build/afile.txt"))
-        shutil.rmtree("build/something_else")
-        os.unlink("build/afile.txt")
-        rec = kiroku.Kiroku(kiroku.CONFIG)
+        self.assertTrue(os.path.exists(os.path.join(self._dir,
+                                                    "build/something_else")))
+        self.assertTrue(os.path.exists(os.path.join(self._dir,
+                                                    "build/afile.txt")))
+        shutil.rmtree(os.path.join(self._dir, "build/something_else"))
+        os.unlink(os.path.join(self._dir, "build/afile.txt"))
+        rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
         rec.build()
-        self.assertTrue(os.path.exists("build/something_else"))
-        self.assertTrue(os.path.exists("build/afile.txt"))
+        self.assertTrue(os.path.exists(os.path.join(self._dir,
+                                                    "build/something_else")))
+        self.assertTrue(os.path.exists(os.path.join(self._dir,
+                                                    "build/afile.txt")))
 
         # write the file, and check it content after build
-        with open("articles/something_else/afile.txt", "w") as fobj:
+        with open(os.path.join(self._dir, "articles/something_else/afile.txt"),
+                               "w") as fobj:
             fobj.write("foo")
-        rec = kiroku.Kiroku(kiroku.CONFIG)
+        rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
         rec.build()
-        self.assertTrue(os.path.exists("build/something_else/afile.txt"))
-        with open("articles/something_else/afile.txt") as fobj:
+        self.assertTrue(os.path.exists(os.path.join(self._dir, 'build',
+                                                    'something_else',
+                                                    'afile.txt')))
+        with open(os.path.join(self._dir, 'articles', 'something_else',
+                               'afile.txt')) as fobj:
             self.assertEqual(fobj.read(), r"foo")
 
         # change the file, the content should change too
-        with open("articles/something_else/afile.txt", "w") as fobj:
+        with open(os.path.join(self._dir, 'articles', 'something_else',
+                               'afile.txt'), "w") as fobj:
             fobj.write("bar")
-        rec = kiroku.Kiroku(kiroku.CONFIG)
+        rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
         rec.build()
-        self.assertTrue(os.path.exists("build/something_else/afile.txt"))
-        with open("articles/something_else/afile.txt") as fobj:
+        self.assertTrue(os.path.exists(os.path.join(self._dir,
+                                                    'build',
+                                                    'something_else',
+                                                    'afile.txt')))
+        with open(os.path.join(self._dir, 'articles', 'something_else',
+                               'afile.txt')) as fobj:
             self.assertEqual(fobj.read(), r"bar")
 
     def test__join_tags(self):
         """Test _join_tags method"""
-        rec = kiroku.Kiroku(kiroku.CONFIG)
+        rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
 
         tags = []
         self.assertEqual(rec._join_tags(tags), '')
@@ -533,16 +569,17 @@ class TestKiroku(unittest.TestCase):
 
     def test__minify_css(self):
         """Test minify function for compressing CSS"""
-        kiroku._minify_css(os.path.join(".css/style.css"))
+        kiroku._minify_css(os.path.join(self._dir, ".css/style.css"))
 
     def test__create_json_data(self):
         """Test _create_json_data method"""
-        os.mkdir("build")
-        rec = kiroku.Kiroku(kiroku.CONFIG)
+        os.mkdir(os.path.join(self._dir, "build"))
+        rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
         rec._create_json_data()
 
-        self.assertIn("search.json", os.listdir("build"))
-        with open(os.path.join("build", "search.json")) as fobj:
+        self.assertIn("search.json", os.listdir(os.path.join(self._dir,
+                                                             "build")))
+        with open(os.path.join(self._dir, "build", "search.json")) as fobj:
             self.assertEqual(json.load(fobj),  {'a': [],
                                                 'w': {}})
 
@@ -551,7 +588,7 @@ class TestKiroku(unittest.TestCase):
         art.body = "foo"
         art.title = "foo"
         art.tags = ['a', 'b']
-        art.created = datetime.strptime("2000-12-12 12:05:00",
+        art.created = datetime.datetime.strptime("2000-12-12 12:05:00",
                                         "%Y-%m-%d %H:%M:%S")
         rec.articles = [art]
 
@@ -560,12 +597,12 @@ class TestKiroku(unittest.TestCase):
         art.body = "bar"
         art.title = "bar"
         art.tags = ['b', 'c']
-        art.created = datetime.strptime("2000-12-12 12:05:00",
+        art.created = datetime.datetime.strptime("2000-12-12 12:05:00",
                                         "%Y-%m-%d %H:%M:%S")
         rec.articles.append(art)
 
         rec._create_json_data()
-        with open(os.path.join("build", "search.json")) as fobj:
+        with open(os.path.join(self._dir, "build", "search.json")) as fobj:
             json_data = json.load(fobj)
             json_data['a'] = [x.strip() for x in json_data['a']]
             self.assertEqual(json_data,
@@ -575,25 +612,21 @@ class TestKiroku(unittest.TestCase):
 
     def test_init(self):
         """Test init() method"""
-        rec = kiroku.Kiroku(kiroku.CONFIG)
-        rec.init("foo")
-        self.assertEqual(os.path.join(self._dir, "foo"), os.getcwd())
-        self.assertTrue(os.path.exists("articles"))
-        self.assertTrue(os.path.exists(".css"))
-        self.assertTrue(os.path.exists(".js"))
-        self.assertTrue(os.path.exists(".templates"))
-        self.assertTrue(os.path.exists("config.ini.example"))
+        rec = kiroku.Kiroku(kiroku.CONFIG, os.path.join(self._dir, "foo"))
+        self.assertEqual(rec.init(), 0)
+        self.assertTrue(os.path.exists(os.path.join(self._dir, "foo",
+                                                    "articles")))
+        self.assertTrue(os.path.exists(os.path.join(self._dir, "foo",
+                                                    ".css")))
+        self.assertTrue(os.path.exists(os.path.join(self._dir, "foo",
+                                                    ".js")))
+        self.assertTrue(os.path.exists(os.path.join(self._dir, "foo",
+                                                    ".templates")))
+        self.assertTrue(os.path.exists(os.path.join(self._dir, "foo",
+                                                    "config.ini.example")))
 
-        os.chdir("..")
-
-        # recreate the project
-        rec.init("foo")
-        self.assertEqual(os.path.join(self._dir, "foo"), os.getcwd())
-        self.assertTrue(os.path.exists("articles"))
-        self.assertTrue(os.path.exists(".css"))
-        self.assertTrue(os.path.exists(".js"))
-        self.assertTrue(os.path.exists(".templates"))
-        self.assertTrue(os.path.exists("config.ini.example"))
+        # Try to recreate the project - should fail
+        self.assertEqual(rec.init(), 1)
 
 
 class TestFunctions(unittest.TestCase):
@@ -602,42 +635,37 @@ class TestFunctions(unittest.TestCase):
     def setUp(self):
         """Assumption is, that all operations are performed in current
         directory with hardcoded article directory"""
-        self._curdir = os.path.abspath(os.curdir)
-        self._dir = mkdtemp()
-        os.chdir(self._dir)
-
-        self._config = deepcopy(kiroku.CONFIG)
+        self._dir = tempfile.mkdtemp()
+        self._config = copy.deepcopy(kiroku.CONFIG)
         self._kiroku = kiroku.Kiroku
         kiroku.Kiroku = MockKiroku
 
     def tearDown(self):
         """Clean up"""
         kiroku.Kiroku = self._kiroku
-        os.chdir(self._curdir)
-        rmtree(self._dir)
-        kiroku.CONFIG = deepcopy(self._config)
+        shutil.rmtree(self._dir)
+        kiroku.CONFIG = copy.deepcopy(self._config)
 
     def test_build(self):
         """Test build funtion"""
         self.assertRaises(TypeError, kiroku.build)
         self.assertRaises(TypeError, kiroku.build, None)
-        arg = MockArgParse()
+        arg = MockArgParse(self._dir)
         self.assertEqual(kiroku.build(arg, kiroku.CONFIG), 0)
 
     def test_init(self):
         """Test init funtion"""
         self.assertRaises(TypeError, kiroku.init)
         self.assertRaises(TypeError, kiroku.init, None)
-        arg = MockArgParse()
-        self.assertRaises(AttributeError, kiroku.init, arg, kiroku.CONFIG)
-        arg.path = 'foo'
+        arg = MockArgParse(self._dir)
         self.assertEqual(kiroku.init(arg, kiroku.CONFIG), 0)
 
     def test_get_config(self):
         """Test get_config function"""
 
         # check defaults
-        conf = kiroku.get_config()
+        args = MockArgParse(self._dir)
+        conf = kiroku.get_config(args)
 
         self.assertEqual(len(conf), 23)
         self.assertEqual(conf['locale'], '')
@@ -656,7 +684,7 @@ class TestFunctions(unittest.TestCase):
             return
 
         cur_locale = ".".join(locale.getdefaultlocale())
-        with open("config.ini", "w") as fobj:
+        with open(os.path.join(self._dir, "config.ini"), "w") as fobj:
             fobj.write("[kiroku]\n")
             fobj.write("locale = %s\n" % cur_locale)
             fobj.write("server_name = foo.com\n")
@@ -667,9 +695,9 @@ class TestFunctions(unittest.TestCase):
             fobj.write("site_name = Custom Name\n")
             fobj.write("timezone = Europe/Warsaw\n")
 
-        kiroku.CONFIG = deepcopy(self._config)
+        kiroku.CONFIG = copy.deepcopy(self._config)
 
-        conf = kiroku.get_config()
+        conf = kiroku.get_config(args)
         self.assertEqual(len(conf), 23)
         self.assertEqual(conf['locale'], cur_locale)
         self.assertEqual(conf['server_name'], 'foo.com')
@@ -689,7 +717,3 @@ class TestFunctions(unittest.TestCase):
 
         arguments = kiroku.parse_commandline(['build'])
         self.assertEqual(arguments.func, kiroku.build)
-
-
-if __name__ == '__main__':
-    unittest.main()

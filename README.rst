@@ -1,3 +1,9 @@
+Kiroku
+======
+
+.. image:: https://travis-ci.org/gryf/kiroku.svg?branch=master
+    :target: https://travis-ci.org/gryf/kiroku
+
 .. image:: https://badge.fury.io/py/kiroku.png
    :target: http://badge.fury.io/py/kiroku
 

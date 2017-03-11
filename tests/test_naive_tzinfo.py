@@ -7,6 +7,7 @@ TODO: Make this module pytz[1] compatible
 """
 
 from datetime import datetime, timedelta, tzinfo
+import locale
 import unittest
 
 from kiroku import naive_tzinfo
@@ -42,6 +43,7 @@ class TestUTCTimeZone(unittest.TestCase):
 
     def setUp(self):
         """Setup"""
+        locale.setlocale(locale.LC_ALL, 'C')
         self.dates = ('2013-01-01 01:59:59', '2013-04-01 02:00:00',
                       '2013-06-01 01:59:59', '2013-09-01 02:00:00')
 
@@ -66,6 +68,7 @@ class TestCETimeZone(unittest.TestCase):
 
     def setUp(self):
         """Setup"""
+        locale.setlocale(locale.LC_ALL, 'C')
         self.dates = {'2012-03-25 02:00:00': "CEST",
                       '2013-03-31 02:00:00': "CEST",
                       '2014-03-30 02:00:00': "CEST",
@@ -141,6 +144,7 @@ class TestFunctions(unittest.TestCase):
 
     def setUp(self):
         """Setup"""
+        locale.setlocale(locale.LC_ALL, 'C')
         self._pytz = naive_tzinfo.pytz
         naive_tzinfo.pytz = None
 
@@ -192,6 +196,7 @@ class TestPytzFunction(unittest.TestCase):
 
     def setUp(self):
         """Setup"""
+        locale.setlocale(locale.LC_ALL, 'C')
         self._pytz = None
         if not naive_tzinfo.pytz:
             # mock pytz if not avail
