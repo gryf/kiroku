@@ -102,6 +102,13 @@ generate entire site:
 Generated HTML files, style, JavaScript files - all of that will be placed in
 the ``build`` directory.
 
+You can also point the directory, where the blog files lies without changing
+the path:
+
+   .. code:: shell-session
+
+      user@localhost $ kiroku build blog
+
 Articles/pages
 --------------
 

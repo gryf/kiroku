@@ -58,16 +58,16 @@ def get_i18n_strings(_):
             "i18n_subscribe_desc": _("Subscribe via RSS")}
 
 
-def build(unused, cfg):
+def build(opts, cfg):
     """Build the site"""
-    kiroku = Kiroku(cfg)
+    kiroku = Kiroku(cfg, opts.path)
     return kiroku.build()
 
 
-def init(argparse, cfg):
+def init(opts, cfg):
     """Initialize given directory with details"""
-    kiroku = Kiroku(cfg)
-    return kiroku.init(argparse.path)
+    kiroku = Kiroku(cfg, opts.path)
+    return kiroku.init()
 
 
 def _minify_css(fname):
@@ -94,24 +94,27 @@ class Kiroku:
     blog/portal/website correctly.
     """
 
-    def __init__(self, config):
+    def __init__(self, config, path='.'):
         self._about_fname = None
         self._sorted_articles = []
         self._cfg = config
+        self.path = path
         self.articles = []
         self.tag_cloud = None
         self.tags = defaultdict(list)
-        self._templ = Template(config)
+        self._templ = Template(config, path)
 
     def build(self):
         """Convert articles against the template to build directory"""
-        if not os.path.exists("build"):
-            os.makedirs(os.path.join("build", "images"))
-            shutil.copytree(".css", "build/css")
-            shutil.copytree(".js", "build/js")
-            for fname in os.listdir(os.path.join("build", "css")):
+        if not os.path.exists(os.path.join(self.path, "build")):
+            os.makedirs(os.path.join(self.path, "build", "images"))
+            shutil.copytree(os.path.join(self.path, ".css"),
+                            os.path.join(self.path, "build/css"))
+            shutil.copytree(os.path.join(self.path, ".js"),
+                            os.path.join(self.path, "build/js"))
+            for fname in os.listdir(os.path.join(self.path, "build", "css")):
                 if fname.endswith(".css"):
-                    _minify_css(os.path.join("build", "css", fname))
+                    _minify_css(os.path.join(self.path, "build", "css", fname))
 
         self._walk()
         self._calculate_tag_cloud()
@@ -120,22 +123,23 @@ class Kiroku:
         self._save()
 
         # copy all the other files and directories content, besides rst files
-        _, dirs, files = next(os.walk("articles"))
+        _, dirs, files = next(os.walk(os.path.join(self.path, "articles")))
         for dirname in dirs:
-            if os.path.exists(os.path.join("build", dirname)):
-                shutil.rmtree(os.path.join("build", dirname))
-            shutil.copytree(os.path.join("articles", dirname),
-                            os.path.join("build", dirname))
+            if os.path.exists(os.path.join(self.path, "build", dirname)):
+                shutil.rmtree(os.path.join(self.path, "build", dirname))
+            shutil.copytree(os.path.join(self.path, "articles", dirname),
+                            os.path.join(self.path, "build", dirname))
         for fname in files:
             if fname.lower().endswith("rst"):
                 continue
 
-            if os.path.exists(os.path.join("build", fname)):
-                os.unlink(os.path.join("build", fname))
-            shutil.copy(os.path.join("articles", fname),
-                        os.path.join("build", fname))
+            if os.path.exists(os.path.join(self.path, "build", fname)):
+                os.unlink(os.path.join(self.path, "build", fname))
+            shutil.copy(os.path.join(self.path, "articles", fname),
+                        os.path.join(self.path, "build", fname))
 
-        shutil.copy(".templates/favicon.ico", "build/images")
+        shutil.copy(os.path.join(self.path, ".templates/favicon.ico"),
+                    os.path.join(self.path, "build/images"))
         self._tag_pages()
         self._index()
         self._archive()
@@ -158,7 +162,7 @@ class Kiroku:
                     "item_desc": art.get_short_body()}
             rss.add(data)
 
-        with open(os.path.join("build", "rss.xml"), "w") as fobj:
+        with open(os.path.join(self.path, "build", "rss.xml"), "w") as fobj:
             fobj.write(rss.get())
 
     def _join_tags(self, tags):
@@ -174,7 +178,8 @@ class Kiroku:
         data, articles metadata (titles, links, tags dates and so on),
         template for the search output, etc"""
         print("Writing json data files…")
-        with open(os.path.join("build", "templates.json"), "w") as fobj:
+        with open(os.path.join(self.path, "build", "templates.json"),
+                  "w") as fobj:
             json.dump({"w": "<h1>%(i18n_search_progress)s</h1>" % self._cfg,
                        "r": "<h1>%(i18n_search_results)s</h1>" % self._cfg,
                        "t":  self._cfg["i18n_search_results_ttile"] +
@@ -205,7 +210,8 @@ class Kiroku:
                 else:
                     words["w"][word].append((idx, art_words[word]))
 
-        with open(os.path.join("build", "search.json"), "w") as fobj:
+        with open(os.path.join(self.path, "build", "search.json"),
+                  "w") as fobj:
             json.dump(words, fobj, ensure_ascii=False)
 
     def _tag_pages(self):
@@ -230,7 +236,7 @@ class Kiroku:
 
             title = self._cfg['i18n_art_tags'] % tag
 
-            with open(os.path.join("build", "tag-%s.html" %
+            with open(os.path.join(self.path, "build", "tag-%s.html" %
                                    tag.translate(TR_TABLE)), "w") as fobj:
 
                 data = {"title": title + " - ",
@@ -261,7 +267,7 @@ class Kiroku:
                                        "short_body": short_body,
                                        "tags": art_tags}))
 
-        with open(os.path.join("build", "index.html"), "w") as fobj:
+        with open(os.path.join(self.path, "build", "index.html"), "w") as fobj:
             fobj.write(self._templ("main",
                                    {"title": "",
                                     "header": "",
@@ -273,7 +279,7 @@ class Kiroku:
                                     "tag_cloud": self.tag_cloud}))
 
     def _archive(self):
-        """Create atchive.html for the site"""
+        """Create archive.html for the site"""
         print("Create archive page…")
 
         titles = []
@@ -288,7 +294,8 @@ class Kiroku:
 
         title = self._cfg['i18n_archives']
 
-        with open(os.path.join("build", "archives.html"), "w") as fobj:
+        with open(os.path.join(self.path, "build", "archives.html"),
+                  "w") as fobj:
             fobj.write(self._templ("main",
                                    {"title": title + " - ",
                                     "header": self._templ("header",
@@ -317,7 +324,8 @@ class Kiroku:
                                   "human_date": art.created_detailed(),
                                   "tags": art_tags})
 
-            with open(os.path.join("build", art.html_fname), "w") as fobj:
+            with open(os.path.join(self.path, "build", art.html_fname),
+                      "w") as fobj:
                 fobj.write(self._templ("main",
                                        {"title": art.title + " - ",
                                         "header": header,
@@ -332,10 +340,10 @@ class Kiroku:
         """Walk through the flat list of the articles and gather all of the
         goodies"""
         print("Gathering articles…")
-        art_filenames = os.listdir("articles")
+        art_filenames = os.listdir(os.path.join(self.path, "articles"))
 
         for fname in art_filenames:
-            full_path = os.path.join("articles", fname)
+            full_path = os.path.join(self.path, "articles", fname)
             if not fname.endswith(".rst"):
                 continue
             if fname == "about.rst":
@@ -355,12 +363,12 @@ class Kiroku:
 
         print("Generating about page…")
 
-        with open(self._about_fname) as fobj:
+        with open(os.path.join(self.path, self._about_fname)) as fobj:
             html, dummy = BlogArticle(fobj.read()).publish()
 
         title = self._cfg["i18n_about"]
 
-        with open(os.path.join("build", "about.html"), "w") as fobj:
+        with open(os.path.join(self.path, "build", "about.html"), "w") as fobj:
             fobj.write(self._templ("main",
                                    {"title": title + " - ",
                                     "header": self._templ("header",
@@ -418,24 +426,28 @@ class Kiroku:
 
         self.tag_cloud = " ".join(tag_cloud)
 
-    def init(self, target):
+    def init(self):
         """Initialize given directory with details"""
-        if os.path.exists(target):
-            print("File or directory `%s' exists. Removing. You may commit "
-                  "seppuku." % target)
-            shutil.rmtree(target)
+        if os.path.exists(self.path):
+            print("File or directory `%s' exists. Remove it, or choose "
+                  "another directory." % self.path)
+            return 1
 
-        print("Initializing `%s'" % target)
+        print("Initializing `%s'" % self.path)
 
-        os.mkdir(target)
-        os.chdir(target)
+        os.mkdir(self.path)
+        # os.chdir(self.path)
 
-        shutil.copytree(os.path.join(DATA_DIR, "articles"), "articles")
-        shutil.copytree(os.path.join(DATA_DIR, "css"), ".css")
-        shutil.copytree(os.path.join(DATA_DIR, "js"), ".js/")
+        shutil.copytree(os.path.join(DATA_DIR, "articles"),
+                        os.path.join(self.path, "articles"))
+        shutil.copytree(os.path.join(DATA_DIR, "css"),
+                        os.path.join(self.path, ".css"))
+        shutil.copytree(os.path.join(DATA_DIR, "js"),
+                        os.path.join(self.path, ".js/"))
 
-        shutil.copytree(os.path.join(DATA_DIR, "templates"), ".templates")
-        shutil.copy(os.path.join(DATA_DIR, "config.ini.example"), ".")
+        shutil.copytree(os.path.join(DATA_DIR, "templates"),
+                        os.path.join(self.path, ".templates"))
+        shutil.copy(os.path.join(DATA_DIR, "config.ini.example"), self.path)
         print('OK.')
         return 0
 
@@ -457,6 +469,7 @@ def parse_commandline(args=None):
                                      "selected file. If no file path is "
                                      "provided, default `articles' will be "
                                      "processed.")
+    build_cmd.add_argument("path", default=".", nargs='?')
     build_cmd.set_defaults(func=build)
 
     arguments = parser.parse_args(args)
@@ -467,11 +480,12 @@ def parse_commandline(args=None):
     return arguments
 
 
-def get_config():
+def get_config(args):
     """Read and return configuration dictionary."""
     config = CONFIG
     conf = SafeConfigParser(defaults=CONFIG)
-    conf.read("config.ini")
+    path = args.path if args.path else '.'
+    conf.read(os.path.join(path, "config.ini"))
 
     if 'kiroku' in conf.sections():
         for key in CONFIG:
@@ -503,4 +517,4 @@ def get_config():
 def run():
     """Parse command line and execute appropriate action"""
     arguments = parse_commandline()
-    sys.exit(arguments.func(arguments, get_config()))
+    sys.exit(arguments.func(arguments, get_config(arguments)))

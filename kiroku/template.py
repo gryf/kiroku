@@ -1,15 +1,17 @@
 """
 Template - simple template mechanism for kiroku
 """
+import os
 import re
 
 
 class Template:
     """Simple class for cooking up partials out of the templates."""
 
-    def __init__(self, config):
+    def __init__(self, config, path='.'):
         """Initialize object"""
         self.templates = {}
+        self.path = path
         self._cfg = config
 
     def __call__(self, template_name, data):
@@ -42,10 +44,12 @@ class Template:
         comments = re.compile("<!--.*?-->", re.DOTALL)
 
         try:
-            with open(".templates/%s.html" % template_name) as fobj:
+            with open(os.path.join(self.path, ".templates/%s.html" %
+                                   template_name)) as fobj:
                 content = fobj.read()
         except IOError:
-            with open(".templates/%s.xml" % template_name) as fobj:
+            with open(os.path.join(self.path, ".templates/%s.xml" %
+                                   template_name)) as fobj:
                 content = fobj.read()
 
         content = re.sub(comments, "", content)
