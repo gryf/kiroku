@@ -1,3 +1,5 @@
+pytz
+Pygments
 pytest
 pytest-cov
 pytest-pep8
