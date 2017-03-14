@@ -15,6 +15,11 @@ from kiroku import kiroku
 from kiroku import article
 
 
+# set UTC timezone for test purpose
+os.environ['TZ'] = 'UTC'
+time.tzset()
+
+
 MOCK_ARTICLES = {'empty.rst': ('', int(time.mktime((2010, 10, 10, 10, 10, 10,
                                                     0, 0, 0)))),
                  'complete.rst': (':Title: Kiroku\n'
@@ -169,7 +174,7 @@ class TestArticle(unittest.TestCase):
         art = article.Article(art_fname, kiroku.CONFIG)
         art._set_ctime()
         self.assertEqual(art.created,
-                         datetime.strptime("20101010111010", "%Y%m%d%H%M%S"))
+                         datetime.strptime("20101010101010", "%Y%m%d%H%M%S"))
 
         # Process field 'datetime' as an Article creation time
         art = article.Article(None, kiroku.CONFIG)
@@ -196,7 +201,7 @@ class TestArticle(unittest.TestCase):
         art_fname = os.path.join(self._dir, 'articles', "empty.rst")
         art = article.Article(art_fname, kiroku.CONFIG)
         art.read()
-        self.assertEqual(art.created_rfc3339(), "2010-10-10T11:10:10+0000")
+        self.assertEqual(art.created_rfc3339(), "2010-10-10T10:10:10+0000")
 
     def test_created_rfc822(self):
         """Test created_rfc822 method"""
@@ -204,7 +209,7 @@ class TestArticle(unittest.TestCase):
         art = article.Article(art_fname, kiroku.CONFIG)
         art.read()
         self.assertEqual(art.created_rfc822(),
-                         "Sun, 10 Oct 2010 11:10:10 +0000")
+                         "Sun, 10 Oct 2010 10:10:10 +0000")
 
     def test_created_detailed(self):
         """Test created_detailed method"""
@@ -212,7 +217,7 @@ class TestArticle(unittest.TestCase):
         art = article.Article(art_fname, kiroku.CONFIG)
         art.read()
         self.assertEqual(art.created_detailed(),
-                         "Sunday, 10 Oct, 2010, 11:10:10")
+                         "Sunday, 10 Oct, 2010, 10:10:10")
 
     def test_get_short_body(self):
         """Test get_short_body method"""

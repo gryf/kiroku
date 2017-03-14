@@ -33,7 +33,7 @@ class Article:
 
     def get_words(self):
         """Return word dictionary out of the html and article attributes"""
-        ml_stripper = MLStripper(strict=False)
+        ml_stripper = MLStripper()
         ml_stripper.feed(self.body)
         return ml_stripper.get_data()
 

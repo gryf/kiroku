@@ -14,10 +14,10 @@ import re
 class MLStripper(HTMLParser):
     """Find and store words from the HTML string."""
 
-    def __init__(self, strict=True):
+    def __init__(self, **kwargs):
         """Initialize. tag_stack will help to keep track on which tag we are,
         words is a container for the data"""
-        super().__init__(strict)
+        super().__init__(**kwargs)
         self.reset()
         self.tag_stack = ['root']
         self.words = defaultdict(list)
