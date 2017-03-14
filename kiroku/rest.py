@@ -2,13 +2,12 @@
 This module is responsible for conversion between reST and HTML with some
 goods added.
 """
-
+import imp
 import re
 
 from docutils import core
 from docutils import nodes
-from docutils.writers.html4css1 import Writer, HTMLTranslator
-import imp
+from docutils.writers import html4css1
 
 try:
     imp.find_module("pygments")
@@ -17,7 +16,7 @@ except ImportError:
     SETTINGS = {'syntax_highlight': 'none'}
 
 
-class CustomHTMLTranslator(HTMLTranslator):
+class CustomHTMLTranslator(html4css1.HTMLTranslator):
     """
     Base class for reST files translations.
     There are couple of customizations for docinfo fields behaviour and
@@ -27,7 +26,7 @@ class CustomHTMLTranslator(HTMLTranslator):
         """
         Set some nice defaults for articles translations
         """
-        HTMLTranslator.__init__(self, document)
+        html4css1.HTMLTranslator.__init__(self, document)
         self.initial_header_level = 2
         self.head = []
         self.meta = []
@@ -115,17 +114,17 @@ class CustomHTMLTranslator(HTMLTranslator):
         BlogArticle.ATTRS[key.lower()] = val.strip()
 
 
-class BlogBodyWriter(Writer):
+class BlogBodyWriter(html4css1.Writer):
     """
     Custom Writer class for generating HTML partial with the article
     """
     def __init__(self):
-        Writer.__init__(self)
+        html4css1.Writer.__init__(self)
         self.translator_class = CustomHTMLTranslator
 
     def translate(self):
         self.document.settings.output_encoding = "utf-8"
-        Writer.translate(self)
+        html4css1.Writer.translate(self)
 
 
 class BlogArticle(object):

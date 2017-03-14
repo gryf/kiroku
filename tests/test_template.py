@@ -2,9 +2,9 @@
 """
 Tests for template module
 """
-from shutil import rmtree
-from tempfile import mkdtemp
 import os
+import shutil
+import tempfile
 import unittest
 
 from kiroku import template
@@ -16,7 +16,7 @@ class TestTemplate(unittest.TestCase):
     def setUp(self):
         """Create some playground"""
         self._curdir = os.path.abspath(os.curdir)
-        self._dir = mkdtemp()
+        self._dir = tempfile.mkdtemp()
         os.chdir(self._dir)
         os.makedirs('.templates')
 
@@ -31,7 +31,7 @@ class TestTemplate(unittest.TestCase):
     def tearDown(self):
         """Clean up"""
         os.chdir(self._curdir)
-        rmtree(self._dir)
+        shutil.rmtree(self._dir)
 
     def testInit(self):
         """Test Template initialization"""

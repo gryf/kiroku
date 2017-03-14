@@ -2,16 +2,16 @@
 """
 Tests for rss module
 """
-from copy import deepcopy
-from gettext import gettext
-from shutil import rmtree, copytree
-from tempfile import mkdtemp
-from xml.etree import ElementTree as etree
+import copy
+import gettext
 import os
+import shutil
+import tempfile
 import unittest
+from xml.etree import ElementTree as etree
 
-from kiroku import rss as rss_mod
 from kiroku import kiroku
+from kiroku import rss as rss_mod
 
 
 class TestRss(unittest.TestCase):
@@ -19,18 +19,19 @@ class TestRss(unittest.TestCase):
 
     def setUp(self):
         """Setup"""
-        self._config = deepcopy(kiroku.CONFIG)
-        kiroku.CONFIG.update(kiroku.get_i18n_strings(gettext))
+        self._config = copy.deepcopy(kiroku.CONFIG)
+        kiroku.CONFIG.update(kiroku.get_i18n_strings(gettext.gettext))
         self._curdir = os.path.abspath(os.curdir)
-        self._dir = mkdtemp()
+        self._dir = tempfile.mkdtemp()
         os.chdir(self._dir)
-        copytree(os.path.join(kiroku.DATA_DIR, "templates"), ".templates")
+        shutil.copytree(os.path.join(kiroku.DATA_DIR, "templates"),
+                        ".templates")
 
     def tearDown(self):
         """Clean up"""
         os.chdir(self._curdir)
-        rmtree(self._dir)
-        kiroku.CONFIG = deepcopy(self._config)
+        shutil.rmtree(self._dir)
+        kiroku.CONFIG = copy.deepcopy(self._config)
 
     def test_initialization(self):
         """Test initialization"""

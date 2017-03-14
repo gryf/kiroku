@@ -6,10 +6,10 @@ import locale
 import os
 import re
 
-from kiroku.rest import BlogArticle
-from kiroku.naive_tzinfo import get_rfc3339, get_rfc822
-from kiroku.search import MLStripper
-from kiroku.misc import TR_TABLE
+from kiroku import misc
+from kiroku import naive_tzinfo
+from kiroku import rest
+from kiroku import search
 
 
 class Article:
@@ -33,7 +33,7 @@ class Article:
 
     def get_words(self):
         """Return word dictionary out of the html and article attributes"""
-        ml_stripper = MLStripper()
+        ml_stripper = search.MLStripper()
         ml_stripper.feed(self.body)
         return ml_stripper.get_data()
 
@@ -47,13 +47,13 @@ class Article:
 
     def created_rfc3339(self):
         """Return RFC 3339 formatted date"""
-        return get_rfc3339(self.created, self._cfg['timezone'])
+        return naive_tzinfo.get_rfc3339(self.created, self._cfg['timezone'])
 
     def created_rfc822(self):
         """Return RFC 822 formatted date"""
         # RFC 822 doesn't allow localized strings
         locale.setlocale(locale.LC_ALL, "C")
-        date = get_rfc822(self.created, self._cfg['timezone'])
+        date = naive_tzinfo.get_rfc822(self.created, self._cfg['timezone'])
         locale.setlocale(locale.LC_ALL, self._cfg["locale"])
         return date
 
@@ -61,7 +61,7 @@ class Article:
         """Return processed article and its fields"""
         html = attrs = None
         with open(self._fname) as fobj:
-            html, attrs = BlogArticle(fobj.read()).publish()
+            html, attrs = rest.BlogArticle(fobj.read()).publish()
         return html, attrs
 
     def _process_attrs(self, attrs):
@@ -114,7 +114,7 @@ class Article:
         dummy, name = os.path.split(self._fname)
         name, dummy = os.path.splitext(name)
 
-        name = name.translate(TR_TABLE)
+        name = name.translate(misc.TR_TABLE)
 
         match = re_fname.match(name)
         if match:

@@ -5,7 +5,7 @@ Tests for reStructuredText translator and writer
 import locale
 import unittest
 
-from docutils.nodes import SkipNode
+from docutils import nodes
 
 from kiroku import rest
 
@@ -127,7 +127,7 @@ class TestCustomHTMLTranslator(unittest.TestCase):
         translator = rest.CustomHTMLTranslator(self.doc)
 
         self.assertEqual(translator.body, [])
-        self.assertRaises(SkipNode, translator.visit_literal, node)
+        self.assertRaises(nodes.SkipNode, translator.visit_literal, node)
         self.assertEqual(translator.body, ['<code>', 'foo', ' ', 'bar',
                                            '\n', ' ', 'baz', '</code>'])
 
@@ -139,7 +139,7 @@ class TestCustomHTMLTranslator(unittest.TestCase):
         translator = rest.CustomHTMLTranslator(self.doc)
 
         self.assertEqual(translator.body, [])
-        self.assertRaises(SkipNode, translator.visit_literal, node)
+        self.assertRaises(nodes.SkipNode, translator.visit_literal, node)
         self.assertEqual(translator.body, ['<code>', 'foo', ' ',
                                            '<span class="pre">--list</span>',
                                            ' ', 'bar', '\n', ' ', 'baz',
@@ -153,7 +153,7 @@ class TestCustomHTMLTranslator(unittest.TestCase):
         translator = rest.CustomHTMLTranslator(self.doc)
 
         self.assertEqual(translator.body, [])
-        self.assertRaises(SkipNode, translator.visit_literal, node)
+        self.assertRaises(nodes.SkipNode, translator.visit_literal, node)
         self.assertEqual(translator.body, ['<code>', 'foo', '&nbsp; ',
                                            '</code>'])
 

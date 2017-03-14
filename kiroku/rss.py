@@ -2,7 +2,7 @@
 RSS class responsible for managing entries in RSS feed and generating XML for
 kiroku
 """
-from kiroku.template import Template
+from kiroku import template
 
 
 class Rss:
@@ -10,7 +10,7 @@ class Rss:
     def __init__(self, cfg, path='.'):
         """Initialize RSS container"""
         self.items = []
-        self._templ = Template(cfg, path)
+        self._templ = template.Template(cfg, path)
 
     def add(self, item):
         """Add rss item to the list. Parameter item is a dictionary which

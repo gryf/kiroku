@@ -6,12 +6,12 @@ somehow hard to do it right statically for Polish language. For sure there
 are existing ready solutions for such task implemented for English language
 (see Sphinx project or https://pypi.python.org/pypi/stemming)
 """
-from html.parser import HTMLParser
-from collections import defaultdict
+import collections
+from html import parser
 import re
 
 
-class MLStripper(HTMLParser):
+class MLStripper(parser.HTMLParser):
     """Find and store words from the HTML string."""
 
     def __init__(self, **kwargs):
@@ -20,7 +20,7 @@ class MLStripper(HTMLParser):
         super().__init__(**kwargs)
         self.reset()
         self.tag_stack = ['root']
-        self.words = defaultdict(list)
+        self.words = collections.defaultdict(list)
 
     def handle_starttag(self, tag, attrs):
         """Store the tag on the stack"""
@@ -50,7 +50,7 @@ class MLStripper(HTMLParser):
     def get_data(self):
         """Return dictionary containning words as the keys and weights as a
         values"""
-        weights = defaultdict(list)
+        weights = collections.defaultdict(list)
         for key in self.words:
             if len(key) > 1:  # skip one letter items
                 weight = sum(self.words[key])

@@ -2,17 +2,17 @@
 """
 Tests for article module
 """
-from copy import deepcopy
+import copy
 from datetime import datetime
-from gettext import gettext
-from shutil import rmtree
-from tempfile import mkdtemp
+import gettext
 import os
+import shutil
+import tempfile
 import time
 import unittest
 
-from kiroku import kiroku
 from kiroku import article
+from kiroku import kiroku
 
 
 # set UTC timezone for test purpose
@@ -62,11 +62,11 @@ class TestArticle(unittest.TestCase):
     def setUp(self):
         """Assumption is, that all operations are performed in current
         directory with hardcoded article directory"""
-        self._config = deepcopy(kiroku.CONFIG)
+        self._config = copy.deepcopy(kiroku.CONFIG)
         kiroku.CONFIG['locale'] = 'C'
-        kiroku.CONFIG.update(kiroku.get_i18n_strings(gettext))
+        kiroku.CONFIG.update(kiroku.get_i18n_strings(gettext.gettext))
         _curdir = os.path.abspath(os.curdir)
-        self._dir = mkdtemp()
+        self._dir = tempfile.mkdtemp()
         os.chdir(self._dir)
         os.mkdir('articles')
 
@@ -79,8 +79,8 @@ class TestArticle(unittest.TestCase):
 
     def tearDown(self):
         """Clean up"""
-        rmtree(self._dir)
-        kiroku.CONFIG = deepcopy(self._config)
+        shutil.rmtree(self._dir)
+        kiroku.CONFIG = copy.deepcopy(self._config)
 
     def test_initialization(self):
         """Tests initialization of the article"""

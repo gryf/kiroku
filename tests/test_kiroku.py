@@ -14,6 +14,7 @@ import time
 import unittest
 from xml.etree import ElementTree
 
+from kiroku import article
 from kiroku import kiroku
 
 
@@ -181,7 +182,7 @@ class TestKiroku(unittest.TestCase):
             self.assertEqual(fobj.read().strip(), "")
 
         for idx in range(3):
-            art = kiroku.Article(None, kiroku.CONFIG)
+            art = article.Article(None, kiroku.CONFIG)
             art.created = datetime.datetime.strptime("20101010111010",
                                                      "%Y%m%d%H%M%S")
             art.tags = tags[idx]
@@ -196,7 +197,7 @@ class TestKiroku(unittest.TestCase):
 
         rec.articles = []
         for idx in range(6):
-            art = kiroku.Article(None, kiroku.CONFIG)
+            art = article.Article(None, kiroku.CONFIG)
             art.created = datetime.datetime.strptime("20101010111010",
                                                      "%Y%m%d%H%M%S")
             art.created += datetime.timedelta(idx)
@@ -212,7 +213,7 @@ class TestKiroku(unittest.TestCase):
 
         rec.articles = []
         for idx in tags:
-            art = kiroku.Article(None, kiroku.CONFIG)
+            art = article.Article(None, kiroku.CONFIG)
             art.created = datetime.datetime.strptime("20101010111010",
                                                      "%Y%m%d%H%M%S")
             art.created += datetime.timedelta(idx)
@@ -292,7 +293,7 @@ class TestKiroku(unittest.TestCase):
             self.assertEqual(fobj.read().strip(), "")
 
         for idx in range(3):
-            art = kiroku.Article(None, kiroku.CONFIG)
+            art = article.Article(None, kiroku.CONFIG)
             art.created = datetime.datetime.strptime("20101010111010",
                                                      "%Y%m%d%H%M%S")
             art.tags = tags[idx]
@@ -312,7 +313,7 @@ class TestKiroku(unittest.TestCase):
 
         rec.articles = []
         for idx in range(6):
-            art = kiroku.Article(None, kiroku.CONFIG)
+            art = article.Article(None, kiroku.CONFIG)
             art.created = datetime.datetime.strptime("20101010111010",
                                                      "%Y%m%d%H%M%S")
             art.created += datetime.timedelta(idx)
@@ -342,7 +343,7 @@ class TestKiroku(unittest.TestCase):
 
         rec = kiroku.Kiroku(kiroku.CONFIG, self._dir)
         for idx in range(1):
-            art = kiroku.Article(None, kiroku.CONFIG)
+            art = article.Article(None, kiroku.CONFIG)
             art.created = datetime.datetime.strptime("20101010111010",
                                                      "%Y%m%d%H%M%S")
             art.created += datetime.timedelta(idx)
@@ -364,7 +365,7 @@ class TestKiroku(unittest.TestCase):
         # Create 11 records. Note, that record with guid l0 is oldest, and l10
         # is youngest record
         for idx in range(11):
-            art = kiroku.Article(None, kiroku.CONFIG)
+            art = article.Article(None, kiroku.CONFIG)
             art.created = datetime.datetime.strptime("201010%d111010" %
                                                      (idx + 1), "%Y%m%d%H%M%S")
             art.created += datetime.timedelta(idx)
@@ -400,7 +401,7 @@ class TestKiroku(unittest.TestCase):
         self.assertEqual(os.listdir(os.path.join(self._dir, "build")), [])
 
         for idx in range(3):
-            art = kiroku.Article(None, kiroku.CONFIG)
+            art = article.Article(None, kiroku.CONFIG)
             art.created = datetime.datetime.strptime("20101010111010",
                                                      "%Y%m%d%H%M%S")
             art.created += datetime.timedelta(idx)
@@ -421,7 +422,7 @@ class TestKiroku(unittest.TestCase):
         self.assertEqual(os.listdir(os.path.join(self._dir, "build")), [])
 
         for idx in range(3):
-            art = kiroku.Article(None, kiroku.CONFIG)
+            art = article.Article(None, kiroku.CONFIG)
             art.created = datetime.datetime.strptime("20101010111010",
                                                      "%Y%m%d%H%M%S")
             art.created += datetime.timedelta(idx)
@@ -583,7 +584,7 @@ class TestKiroku(unittest.TestCase):
             self.assertEqual(json.load(fobj),  {'a': [],
                                                 'w': {}})
 
-        art = kiroku.Article("foo.rst", kiroku.CONFIG)
+        art = article.Article("foo.rst", kiroku.CONFIG)
         art.html_fname = "foo.html"
         art.body = "foo"
         art.title = "foo"
@@ -592,7 +593,7 @@ class TestKiroku(unittest.TestCase):
                                                  "%Y-%m-%d %H:%M:%S")
         rec.articles = [art]
 
-        art = kiroku.Article("bar.rst", kiroku.CONFIG)
+        art = article.Article("bar.rst", kiroku.CONFIG)
         art.html_fname = "bar.html"
         art.body = "bar"
         art.title = "bar"

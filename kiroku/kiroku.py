@@ -4,23 +4,23 @@ Kiroku - Manage and create static website.
 See README for details
 """
 from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
-from collections import defaultdict
-from configparser import SafeConfigParser
+import collections
+import configparser
 import gettext
-from math import log
-from operator import attrgetter
 import json
 import locale
+import math
+import operator
 import os
 import re
 import shutil
 import sys
 
-from kiroku.article import Article
-from kiroku.misc import TR_TABLE
-from kiroku.rest import BlogArticle
-from kiroku.rss import Rss
-from kiroku.template import Template
+from kiroku import article
+from kiroku import misc
+from kiroku import rest
+from kiroku import rss
+from kiroku import template
 
 
 APP_NAME = "kiroku"
@@ -101,8 +101,8 @@ class Kiroku:
         self.path = path
         self.articles = []
         self.tag_cloud = None
-        self.tags = defaultdict(list)
-        self._templ = Template(config, path)
+        self.tags = collections.defaultdict(list)
+        self._templ = template.Template(config, path)
 
     def build(self):
         """Convert articles against the template to build directory"""
@@ -153,22 +153,22 @@ class Kiroku:
             return
 
         print("Writing RSS file…")
-        rss = Rss(self._cfg, self.path)
+        rssobj = rss.Rss(self._cfg, self.path)
 
         for art in self.articles[:10]:
             data = {"article_title": art.title,
                     "article_link": art.html_fname,
                     "pub_date": art.created_rfc822(),
                     "item_desc": art.get_short_body()}
-            rss.add(data)
+            rssobj.add(data)
 
         with open(os.path.join(self.path, "build", "rss.xml"), "w") as fobj:
-            fobj.write(rss.get())
+            fobj.write(rssobj.get())
 
     def _join_tags(self, tags):
         """Parse tags and return them as string of tags separated with comma"""
         data = [self._templ("article_tag",
-                            {'tag_url': tag_.translate(TR_TABLE),
+                            {'tag_url': tag_.translate(misc.TR_TABLE),
                              'tag': tag_})
                 for tag_ in tags]
         return ', '.join(data)
@@ -218,7 +218,7 @@ class Kiroku:
         """Create pages for the tag links"""
         print("Creating tag pages…")
 
-        tags = defaultdict(list)
+        tags = collections.defaultdict(list)
         for art in self.articles:
             for tag in art.tags:
                 tags[tag].append(art)
@@ -237,7 +237,7 @@ class Kiroku:
             title = self._cfg['i18n_art_tags'] % tag
 
             with open(os.path.join(self.path, "build", "tag-%s.html" %
-                                   tag.translate(TR_TABLE)), "w") as fobj:
+                                   tag.translate(misc.TR_TABLE)), "w") as fobj:
 
                 data = {"title": title + " - ",
                         "header": self._templ("header", {"title": title}),
@@ -351,7 +351,8 @@ class Kiroku:
             else:
                 self._harvest(full_path)
 
-        self.articles = sorted(self.articles, key=attrgetter('created'),
+        self.articles = sorted(self.articles,
+                               key=operator.attrgetter('created'),
                                reverse=True)
         print("…done. Articles found: %d" % len(self.articles))
 
@@ -364,7 +365,7 @@ class Kiroku:
         print("Generating about page…")
 
         with open(self._about_fname) as fobj:
-            html, dummy = BlogArticle(fobj.read()).publish()
+            html, dummy = rest.BlogArticle(fobj.read()).publish()
 
         title = self._cfg["i18n_about"]
 
@@ -383,7 +384,7 @@ class Kiroku:
     def _harvest(self, fname):
         """Gather all the necessary info for the article"""
         print("Processing `%s'" % fname)
-        art = Article(fname, self._cfg)
+        art = article.Article(fname, self._cfg)
         art.read()
         self.articles.append(art)
 
@@ -409,19 +410,20 @@ class Kiroku:
         high = 9
 
         for tag in self.tags:
-            if log(biggest):
-                size = (log(tag_weight[tag]) /
-                        log(biggest)) * (high - low) + low
+            if math.log(biggest):
+                size = (math.log(tag_weight[tag]) /
+                        math.log(biggest)) * (high - low) + low
             else:
                 size = 9
             self.tag_cloud[tag] = size
 
         tag_cloud = []
         for key in sorted(self.tags):
+            tag_url = key.translate(misc.TR_TABLE)
             tag_cloud.append(self._templ("tag",
                                          {"size": self.tag_cloud[key],
                                           "tag": key,
-                                          "tag_url": key.translate(TR_TABLE),
+                                          "tag_url": tag_url,
                                           "count": tag_weight[key]}))
 
         self.tag_cloud = " ".join(tag_cloud)
@@ -482,7 +484,7 @@ def parse_commandline(args=None):
 def get_config(args):
     """Read and return configuration dictionary."""
     config = CONFIG
-    conf = SafeConfigParser(defaults=CONFIG)
+    conf = configparser.SafeConfigParser(defaults=CONFIG)
     path = args.path if args.path else '.'
     conf.read(os.path.join(path, "config.ini"))
 
