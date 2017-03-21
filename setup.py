@@ -6,11 +6,14 @@ from distutils.command import build
 from distutils.command import sdist
 import os
 import re
+import shlex
 import shutil
 import subprocess
+import sys
 
 from setuptools import setup
 from setuptools import Command
+from setuptools.command.test import test as TestCommand
 
 
 try:
@@ -151,6 +154,19 @@ class CustomSdist(sdist.sdist):
         super().run()
 
 
+class Test(TestCommand):
+    user_options = [('pytest-args=', 'a', "Arguments to pass to pytest")]
+
+    def initialize_options(self):
+        TestCommand.initialize_options(self)
+        self.pytest_args = ''
+
+    def run_tests(self):
+        import pytest
+        errno = pytest.main(shlex.split(self.pytest_args))
+        sys.exit(errno)
+
+
 setup(name="kiroku",
       packages=["kiroku"],
       package_data={"kiroku": find_dists()},
@@ -177,8 +193,11 @@ setup(name="kiroku",
                    "Topic :: Text Processing :: Markup",
                    "Topic :: Text Processing :: Markup :: HTML"],
       long_description=open("README.rst").read(),
+      setup_requires=['pytest-runner'],
+      tests_require=['pytest'],
       cmdclass={'build': CustomBuild,
                 'gencat': GenerateMo,
                 'genpot': GeneratePot,
                 'minify': MinifyJavaScript,
-                'sdist': CustomSdist})
+                'sdist': CustomSdist,
+                'test': Test})
