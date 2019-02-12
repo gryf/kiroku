@@ -484,7 +484,7 @@ def parse_commandline(args=None):
 def get_config(args):
     """Read and return configuration dictionary."""
     config = CONFIG
-    conf = configparser.SafeConfigParser(defaults=CONFIG)
+    conf = configparser.ConfigParser(defaults=CONFIG)
     path = args.path if args.path else '.'
     conf.read(os.path.join(path, "config.ini"))
 
