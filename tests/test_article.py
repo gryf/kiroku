@@ -138,7 +138,7 @@ class TestArticle(unittest.TestCase):
     def test__set_html_name(self):
         """Test _set_html_name method"""
         art = article.Article(None, kiroku.CONFIG)
-        self.assertRaises(AttributeError, art._set_html_name)
+        self.assertRaises(TypeError, art._set_html_name)
 
         art = article.Article("foobar", kiroku.CONFIG)
         art._set_html_name()

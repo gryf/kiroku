@@ -25,7 +25,7 @@ class="nv">SOME_MORE_CODE</span>
 
     def test_get_data(self):
         """Tests get_data() method of MLStripper"""
-        ml_stripper = search.MLStripper(strict=False)
+        ml_stripper = search.MLStripper()
         ml_stripper.feed(self.html)
         out = ml_stripper.get_data()
 

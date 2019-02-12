@@ -96,7 +96,7 @@ class TestCustomHTMLTranslator(unittest.TestCase):
         self.assertEqual(translator.html_prolog, [])
         self.assertEqual(translator.meta, [])
         self.assertEqual(translator.head, [])
-        self.assertEqual(translator.math_header, '')
+        self.assertEqual(translator.math_header, [])
         self.assertEqual(len(translator.html_head), 1)
         self.assertEqual(translator.body_prefix, [])
         self.assertEqual(translator.body_suffix, [])
